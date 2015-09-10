@@ -42,6 +42,15 @@ func addToCache(spartial string, s string) {
     }
 }
 
+func stringInSlice(a string, list []string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
+}
+
 func getPartials(s string) ([]string, int) { 
     partials := make([]string,1000)
     num := 0
@@ -51,8 +60,8 @@ func getPartials(s string) ([]string, int) {
        partials[num] = s
        num = num + 1
     } else {
-        for i := 0; i <= slen-3; i ++ {
-            partials[num] = s[i:i+3]
+        for i := 0; i <= slen-4; i ++ {
+            partials[num] = s[i:i+4]
             num = num + 1
         }
     }
@@ -60,23 +69,43 @@ func getPartials(s string) ([]string, int) {
 }
 
 func getMatch(s string) (string) {
-    partials, num := getPartials(s)
-    matches := make([]string,1000)
-    numm := 0
-    if num>2 {
-        for i := 0; i < num; i ++ {
-            // allPossibleMatches
-        }
-    }  
     match := "No match"
+    partials, num := getPartials(s)
+    matches := make([]string,10000)
+    numm := 0
+    for i := 0; i < num; i ++ {
+    
+      inFile, _ := os.Open("cache/"+partials[i])
+      defer inFile.Close()
+      scanner := bufio.NewScanner(inFile)
+        scanner.Split(bufio.ScanLines) 
+      
+      for scanner.Scan() {
+        if stringInSlice(scanner.Text(),matches) == false {
+            matches[numm] = scanner.Text()
+            numm = numm + 1
+        }
+      }
+    
+    }
+    //fmt.Printf("%v",matches[0:numm])
+    fmt.Printf("searching through %v matches\n",numm)
+    bestLevenshtein := 1000
+    for i := 0; i < numm; i ++ {
+      d := levenshtein.Distance(s, matches[i])
+      if (d < bestLevenshtein) {
+        bestLevenshtein = d
+        match = matches[i]
+      }
+    }
     return match
 }
 
 
 func main() {
     //generateHash("wordlist")
-    match := getMatch("aardvark")
-    fmt.Println("%v",match)
+    match := getMatch("madgascar")
+    fmt.Printf("Match: %v\n",match)
     s1 := "marcy playground"
     s2 := "mary playground"
     fmt.Printf("The distance between %v and %v is %v\n",
