@@ -8,41 +8,44 @@ import (
 )
 
 
-func addToHash(m map[string][]string, s string) {
+func addToFile(s string) {
     slen := len(s)
     if slen <= 4 {
-        m["four"] = append(m["four"], s)
-
+       addToCache("four",s)
     } else {
+        for i := 0; i <= slen-3; i ++ {
+            addToCache(s[i:i+3],s)
+        }
+    }
+}
 
-    for i := 0; i <= slen-3; i ++ {
-        fmt.Println(s[i:i+3])
-        m[s[i:i+3]] = append(m[s[i:i+3]], s)
+func addToCache(spartial string, s string) {
+    f, err := os.OpenFile("cache/" + spartial, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+    if err != nil {
+        panic(err)
     }
 
+    defer f.Close()
+
+    if _, err = f.WriteString(s); err != nil {
+        panic(err)
     }
 }
 
 
-func generateHash(path string, m map[string][]string) {
+func generateHash(path string) {
   inFile, _ := os.Open(path)
   defer inFile.Close()
   scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines) 
   
   for scanner.Scan() {
-    addToHash(m,scanner.Text())
+    addToFile(scanner.Text())
   }
 }
 
 func main() {
-    m := make(map[string][]string)
-    generateHash("wordlist",m)
-    addToHash(m,"something")
-    addToHash(m,"some")
-for key, value := range m {
-    fmt.Println("Key:", key, "Value:", value)
-}
+    generateHash("wordlist")
     s1 := "marcy playground"
     s2 := "mary playground"
     fmt.Printf("The distance between %v and %v is %v\n",
