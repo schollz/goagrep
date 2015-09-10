@@ -18,10 +18,8 @@ func generateHash(path string) {
   for scanner.Scan() {
     s := strings.Replace(scanner.Text(),"/","",-1)
     partials, num := getPartials(s)
-    if num>2 {
-        for i := 0; i < num; i ++ {
-            addToCache(partials[i],s)
-        }
+    for i := 0; i < num; i ++ {
+        addToCache(partials[i],s)
     }
   }
 }
@@ -46,6 +44,7 @@ func stringInSlice(a string, list []string) bool {
     for _, b := range list {
         if b == a {
             return true
+            break
         }
     }
     return false
@@ -56,7 +55,7 @@ func getPartials(s string) ([]string, int) {
     num := 0
     s = strings.Replace(s,"/","",-1)
     slen := len(s)
-    if slen <= 4 {
+    if slen <= 3 {
        partials[num] = "asdf"
        num = num + 1
     } else {
@@ -73,6 +72,8 @@ func getMatch(s string) (string) {
     partials, num := getPartials(s)
     matches := make([]string,10000)
     numm := 0
+
+
     for i := 0; i < num; i ++ {
     
       inFile, _ := os.Open("cache/"+partials[i])
@@ -90,20 +91,24 @@ func getMatch(s string) (string) {
     }
     //fmt.Printf("%v",matches[0:numm])
     fmt.Printf("searching through %v matches\n",numm)
+
+
     bestLevenshtein := 1000
+
     for i := 0; i < numm; i ++ {
       d := levenshtein.Distance(s, matches[i])
       if (d < bestLevenshtein) {
         bestLevenshtein = d
         match = matches[i]
-      }
+//        fmt.Printf("match num: %v\n",d)
+      } 
     }
     return match
 }
 
 
 func main() {
-    //generateHash("wordlist")
+   //generateHash("wordlist")
     match := getMatch(os.Args[1])
     fmt.Printf("Match: %v\n",match)
 }
