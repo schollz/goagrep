@@ -57,11 +57,11 @@ func getPartials(s string) ([]string, int) {
     s = strings.Replace(s,"/","",-1)
     slen := len(s)
     if slen <= 4 {
-       partials[num] = s
+       partials[num] = "asdf"
        num = num + 1
     } else {
-        for i := 0; i <= slen-4; i ++ {
-            partials[num] = s[i:i+4]
+        for i := 0; i <= slen-3; i ++ {
+            partials[num] = s[i:i+3]
             num = num + 1
         }
     }
@@ -104,11 +104,6 @@ func getMatch(s string) (string) {
 
 func main() {
     //generateHash("wordlist")
-    match := getMatch("madgascar")
+    match := getMatch(os.Args[1])
     fmt.Printf("Match: %v\n",match)
-    s1 := "marcy playground"
-    s2 := "mary playground"
-    fmt.Printf("The distance between %v and %v is %v\n",
-        s1, s2, levenshtein.Distance(s1, s2))
-    // -> The distance between kitten and sitting is 3
 }
