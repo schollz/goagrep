@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+    "time"
 )
 
 //GLOBALS
@@ -88,8 +89,8 @@ func getMatch(s string) string {
 	matches := make([]string, 10000)
 	numm := 0
 
-    N := 2
-    
+    N := 8
+    start := time.Now()
 	for i := 0; i < num; i++ {
 
 		inFile, _ := os.Open("cache/" + partials[i])
@@ -105,16 +106,28 @@ func getMatch(s string) string {
 		}
 
 	}
+    elapsed := time.Since(start)
+    fmt.Printf("\nReading files took %s\n", elapsed)
+    start = time.Now()
+	
     matches2 := make([]string,numm)
     matches2 = matches[0:numm]
     findings_leven = make([]int, N)
     findings_matches = make([]string, N)
+    
+    elapsed = time.Since(start)
+    fmt.Printf("\nGenerating matrices took %s\n", elapsed)
+    start = time.Now()
 
     wg.Add(N)
     for i := 0; i < N; i++ {
             go search(matches2[i*len(matches2)/N : (i+1)*len(matches2)/N], s, i)
     }
     wg.Wait()
+    
+    elapsed = time.Since(start)
+    fmt.Printf("\nParallel levenshtein took %s\n", elapsed)
+    start = time.Now()
     
     fmt.Printf("findings_matches: %v\n",findings_matches)
     fmt.Printf("findings_leven: %v\n",findings_leven)
@@ -127,7 +140,11 @@ func getMatch(s string) string {
             best_index = i
         }
     }
-
+    
+    elapsed = time.Since(start)
+    fmt.Printf("\nMerging results took %s\n", elapsed)
+    start = time.Now()
+    
 	return findings_matches[best_index]
 }
 
