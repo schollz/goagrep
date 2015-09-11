@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"github.com/arbovm/levenshtein"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 )
+
+//GLOBALS
+var findings_matches []string
+var findings_leven []int
+var wg sync.WaitGroup
 
 func abs(x int) int {
 	if x < 0 {
@@ -76,12 +80,16 @@ func getPartials(s string) ([]string, int) {
 	return partials, num
 }
 
+
+
+
 func getMatch(s string) string {
-	match := "No match"
 	partials, num := getPartials(s)
 	matches := make([]string, 10000)
 	numm := 0
 
+    N := 2
+    
 	for i := 0; i < num; i++ {
 
 		inFile, _ := os.Open("cache/" + partials[i])
@@ -97,47 +105,51 @@ func getMatch(s string) string {
 		}
 
 	}
+    matches2 := make([]string,numm)
+    matches2 = matches[0:numm]
+    findings_leven = make([]int, N)
+    findings_matches = make([]string, N)
 
-	bestLevenshtein := 1000
+    wg.Add(N)
+    for i := 0; i < N; i++ {
+            go search(matches2[i*len(matches2)/N : (i+1)*len(matches2)/N], s, i)
+    }
+    wg.Wait()
+    
+    fmt.Printf("findings_matches: %v\n",findings_matches)
+    fmt.Printf("findings_leven: %v\n",findings_leven)
+    
+    lowest := 100
+    best_index := 0
+    for i := 0; i < len(findings_leven); i++ {
+        if findings_leven[i] < lowest {
+            lowest = findings_leven[i]
+            best_index = i
+        }
+    }
 
-	runtime.GOMAXPROCS(2)
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-
-		for i := 0; i < numm; i++ {
-			if i%2 == 0 {
-				d := levenshtein.Distance(s, matches[i])
-				if d < bestLevenshtein {
-					bestLevenshtein = d
-					match = matches[i]
-				}
-			}
-		}
-
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		for i := 0; i < numm; i++ {
-			if i%2 == 1 {
-				d := levenshtein.Distance(s, matches[i])
-				if d < bestLevenshtein {
-					bestLevenshtein = d
-					match = matches[i]
-				}
-			}
-		}
-
-	}()
-
-	wg.Wait()
-
-	return match
+	return findings_matches[best_index]
 }
+
+
+
+func search(matches []string, target string, process int) {
+	defer wg.Done()
+    match := "No match"
+    bestLevenshtein := 1000
+	for i := 0; i < len(matches); i++ {
+		d := levenshtein.Distance(target, matches[i])
+		if d < bestLevenshtein {
+			bestLevenshtein = d
+			match = matches[i]
+		}
+	}
+    findings_matches[process] = match
+    findings_leven[process] = bestLevenshtein
+}
+
+		
+
 
 func main() {
 	//generateHash("wordlist")
