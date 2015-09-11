@@ -9,6 +9,15 @@ import (
 )
 
 
+func abs(x int) (int) {
+    if x < 0 {
+        return -x
+    } else if x == 0 {
+        return 0 // return correctly abs(-0)
+    }
+    return x
+}
+
 func generateHash(path string) {
   inFile, _ := os.Open(path)
   defer inFile.Close()
@@ -82,27 +91,30 @@ func getMatch(s string) (string) {
         scanner.Split(bufio.ScanLines) 
       
       for scanner.Scan() {
-        if stringInSlice(scanner.Text(),matches) == false {
+        //if stringInSlice(scanner.Text(),matches) == false { ITS NOT WORTH LOOKING THROUGH DUPLICATES
             matches[numm] = scanner.Text()
             numm = numm + 1
-        }
+       // }
       }
     
     }
-    //fmt.Printf("%v",matches[0:numm])
-    fmt.Printf("searching through %v matches\n",numm)
 
 
     bestLevenshtein := 1000
+    
 
     for i := 0; i < numm; i ++ {
-      d := levenshtein.Distance(s, matches[i])
-      if (d < bestLevenshtein) {
-        bestLevenshtein = d
-        match = matches[i]
-//        fmt.Printf("match num: %v\n",d)
-      } 
+
+              d := levenshtein.Distance(s, matches[i])
+              if (d < bestLevenshtein) {
+                bestLevenshtein = d
+                match = matches[i]
+              } 
+
     }
+    
+	
+    
     return match
 }
 
