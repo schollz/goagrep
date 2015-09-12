@@ -6,6 +6,7 @@ Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples)
 | Python | 21 ms  |
 |--------|--------|
 | Go N=1 | 3-6 ms |
+|--------|--------|
 | Go N=8 | 2-4 ms |
 
 # To do
