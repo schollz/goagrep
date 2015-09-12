@@ -3,10 +3,10 @@
 
 Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples). Run 1000 times and taking average.
 
+| Language | Runtime  |
+|--------|--------|
 | Python | 21 ms  |
-|--------|--------|
 | Go N=1 | 3-6 ms |
-|--------|--------|
 | Go N=8 | 2-4 ms |
 
 # To do
