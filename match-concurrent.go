@@ -62,16 +62,16 @@ func stringInSlice(a string, list []string) bool {
 }
 
 func getPartials(s string) ([]string, int) {
-	partials := make([]string, 1000)
+	partials := make([]string, 100000)
 	num := 0
 	s = strings.Replace(s, "/", "", -1)
 	slen := len(s)
-	if slen <= 4 {
+	if slen <= 5 {
 		partials[num] = "asdf"
 		num = num + 1
 	} else {
-		for i := 0; i <= slen-4; i++ {
-			partials[num] = strings.ToLower(s[i : i+4])
+		for i := 0; i <= slen-5; i++ {
+			partials[num] = strings.ToLower(s[i : i+5])
 			num = num + 1
 		}
 	}
@@ -80,7 +80,7 @@ func getPartials(s string) ([]string, int) {
 
 func getMatch(s string, path string) (string, int) {
 	partials, num := getPartials(s)
-	matches := make([]string, 10000)
+	matches := make([]string, 1000000)
 	numm := 0
 
 	N := 8
