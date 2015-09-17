@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-    "time"
 )
 
 //GLOBALS
@@ -42,14 +41,12 @@ func generateHash(path string) {
 func addToCache(spartial string, s string) {
 	f, err := os.OpenFile("cache/"+spartial, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		fmt.Println("%v", spartial)
 		panic(err)
 	}
 
 	defer f.Close()
 
 	if _, err = f.WriteString(s + "\n"); err != nil {
-		fmt.Println("%v", spartial)
 		panic(err)
 	}
 }
@@ -74,23 +71,19 @@ func getPartials(s string) ([]string, int) {
 		num = num + 1
 	} else {
 		for i := 0; i <= slen-3; i++ {
-			partials[num] = s[i : i+3]
+			partials[num] = strings.ToLower(s[i : i+3])
 			num = num + 1
 		}
 	}
 	return partials, num
 }
 
-
-
-
 func getMatch(s string) string {
 	partials, num := getPartials(s)
 	matches := make([]string, 10000)
 	numm := 0
 
-    N := 8
-    start := time.Now()
+	N := 8
 	for i := 0; i < num; i++ {
 
 		inFile, _ := os.Open("cache/" + partials[i])
@@ -106,70 +99,55 @@ func getMatch(s string) string {
 		}
 
 	}
-    elapsed := time.Since(start)
-    fmt.Printf("\nReading files took %s\n", elapsed)
-    start = time.Now()
-	
-    matches2 := make([]string,numm)
-    matches2 = matches[0:numm]
-    findings_leven = make([]int, N)
-    findings_matches = make([]string, N)
-    
-    elapsed = time.Since(start)
-    fmt.Printf("\nGenerating matrices took %s\n", elapsed)
-    start = time.Now()
 
-    wg.Add(N)
-    for i := 0; i < N; i++ {
-            go search(matches2[i*len(matches2)/N : (i+1)*len(matches2)/N], s, i)
-    }
-    wg.Wait()
-    
-    elapsed = time.Since(start)
-    fmt.Printf("\nParallel levenshtein took %s\n", elapsed)
-    start = time.Now()
-    
-    fmt.Printf("findings_matches: %v\n",findings_matches)
-    fmt.Printf("findings_leven: %v\n",findings_leven)
-    
-    lowest := 100
-    best_index := 0
-    for i := 0; i < len(findings_leven); i++ {
-        if findings_leven[i] < lowest {
-            lowest = findings_leven[i]
-            best_index = i
-        }
-    }
-    
-    elapsed = time.Since(start)
-    fmt.Printf("\nMerging results took %s\n", elapsed)
-    start = time.Now()
-    
+	matches2 := make([]string, numm)
+	matches2 = matches[0:numm]
+	findings_leven = make([]int, N)
+	findings_matches = make([]string, N)
+
+	wg.Add(N)
+	for i := 0; i < N; i++ {
+		go search(matches2[i*len(matches2)/N:(i+1)*len(matches2)/N], s, i)
+	}
+	wg.Wait()
+
+	lowest := 100
+	best_index := 0
+	for i := 0; i < len(findings_leven); i++ {
+		if findings_leven[i] < lowest {
+			lowest = findings_leven[i]
+			best_index = i
+		}
+	}
+
 	return findings_matches[best_index]
 }
 
-
-
 func search(matches []string, target string, process int) {
 	defer wg.Done()
-    match := "No match"
-    bestLevenshtein := 1000
+	match := "No match"
+	target = strings.ToLower(target)
+	bestLevenshtein := 1000
 	for i := 0; i < len(matches); i++ {
-		d := levenshtein.Distance(target, matches[i])
+		d := levenshtein.Distance(target, strings.ToLower(matches[i]))
 		if d < bestLevenshtein {
 			bestLevenshtein = d
 			match = matches[i]
 		}
 	}
-    findings_matches[process] = match
-    findings_leven[process] = bestLevenshtein
+	findings_matches[process] = match
+	findings_leven[process] = bestLevenshtein
 }
 
-		
-
-
 func main() {
-	//generateHash("wordlist")
-	match := getMatch(os.Args[1])
-	fmt.Printf("Match: %v\n", match)
+	if strings.EqualFold(os.Args[1], "help") {
+		fmt.Println("./match-concurrent build <NAME OF WORDLIST>\n")
+		fmt.Println("./match-concurrent 'word or words to match'\n")
+	} else if strings.EqualFold(os.Args[1], "build") {
+		os.Mkdir("cache", 0775)
+		generateHash(os.Args[2])
+	} else {
+		match := getMatch(os.Args[1])
+		fmt.Printf("%v\n", match)
+	}
 }
