@@ -66,19 +66,19 @@ func getPartials(s string) ([]string, int) {
 	num := 0
 	s = strings.Replace(s, "/", "", -1)
 	slen := len(s)
-	if slen <= 3 {
+	if slen <= 4 {
 		partials[num] = "asdf"
 		num = num + 1
 	} else {
-		for i := 0; i <= slen-3; i++ {
-			partials[num] = strings.ToLower(s[i : i+3])
+		for i := 0; i <= slen-4; i++ {
+			partials[num] = strings.ToLower(s[i : i+4])
 			num = num + 1
 		}
 	}
 	return partials, num
 }
 
-func getMatch(s string) string {
+func getMatch(s string, path string) (string, int) {
 	partials, num := getPartials(s)
 	matches := make([]string, 10000)
 	numm := 0
@@ -86,7 +86,7 @@ func getMatch(s string) string {
 	N := 8
 	for i := 0; i < num; i++ {
 
-		inFile, _ := os.Open("cache/" + partials[i])
+		inFile, _ := os.Open(path + partials[i])
 		defer inFile.Close()
 		scanner := bufio.NewScanner(inFile)
 		scanner.Split(bufio.ScanLines)
@@ -120,7 +120,7 @@ func getMatch(s string) string {
 		}
 	}
 
-	return findings_matches[best_index]
+	return findings_matches[best_index],lowest
 }
 
 func search(matches []string, target string, process int) {
@@ -141,13 +141,14 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Println("./match-concurrent build <NAME OF WORDLIST>\n")
-		fmt.Println("./match-concurrent 'word or words to match'\n")
+		fmt.Println("Version 1.0 - 4-mer tuples\n")
+		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
+		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
 		os.Mkdir("cache", 0775)
 		generateHash(os.Args[2])
 	} else {
-		match := getMatch(os.Args[1])
-		fmt.Printf("%v\n", match)
+		match,lowest := getMatch(os.Args[1],os.Args[2])
+		fmt.Printf("%v|||%v\n", match,lowest)
 	}
 }
