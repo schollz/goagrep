@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"runtime"
 )
 
 //GLOBALS
@@ -64,14 +65,20 @@ func stringInSlice(a string, list []string) bool {
 func getPartials(s string) ([]string, int) {
 	partials := make([]string, 100000)
 	num := 0
+	s = strings.ToLower(s)
 	s = strings.Replace(s, "/", "", -1)
+	s = strings.Replace(s, " ", "", -1)
+	s = strings.Replace(s, "the", "", -1)
+	s = strings.Replace(s, "by", "", -1)
+	s = strings.Replace(s, "dr", "", -1)
+	s = strings.Replace(s, "of", "", -1)
 	slen := len(s)
-	if slen <= 5 {
+	if slen <= 6 {
 		partials[num] = "asdf"
 		num = num + 1
 	} else {
-		for i := 0; i <= slen-5; i++ {
-			partials[num] = strings.ToLower(s[i : i+5])
+		for i := 0; i <= slen-6; i++ {
+			partials[num] = s[i : i+6]
 			num = num + 1
 		}
 	}
@@ -82,7 +89,7 @@ func getMatch(s string, path string) (string, int) {
 	partials, num := getPartials(s)
 	matches := make([]string, 1000000)
 	numm := 0
-
+	runtime.GOMAXPROCS(8)
 	N := 8
 	for i := 0; i < num; i++ {
 
