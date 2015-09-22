@@ -16,6 +16,7 @@ import (
 var findings_matches []string
 var findings_leven []int
 var wg sync.WaitGroup
+var tuple_length int
 
 func abs(x int) int {
 	if x < 0 {
@@ -50,7 +51,7 @@ func generateHash(path string) {
 		}
 	}
 	for k := range mm {
-		fmt.Printf("%v : %v\n", k, mm[k])
+		//fmt.Printf("%v : %v\n", k, mm[k])
 		addToCache(k[0:2], k+" "+mm[k])
 	}
 }
@@ -89,12 +90,12 @@ func getPartials(s string) []string {
 	s = strings.Replace(s, "dr", "", -1)
 	s = strings.Replace(s, "of", "", -1)
 	slen := len(s)
-	if slen <= 6 {
-		partials[num] = "asdf"
+	if slen <= tuple_length {
+		partials[num] = "zzzf"
 		num = num + 1
 	} else {
-		for i := 0; i <= slen-6; i++ {
-			partials[num] = s[i : i+6]
+		for i := 0; i <= slen-tuple_length; i++ {
+			partials[num] = s[i : i+tuple_length]
 			num = num + 1
 		}
 	}
@@ -139,8 +140,8 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 
 		for scanner.Scan() {
 			scan := scanner.Text()
-			if partials[i] == scan[0:6] {
-				for _, k := range strings.Split(scan[6:], " ") {
+			if partials[i] == scan[0:tuple_length] {
+				for _, k := range strings.Split(scan[tuple_length:], " ") {
 					indexMatches[numm], _ = strconv.Atoi(k)
 					numm++
 				}
@@ -148,15 +149,16 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 		}
 
 	}
-	fmt.Printf("\nIndex matches: %v\n", indexMatches[0:numm])
+	//fmt.Printf("\nIndex matches: %v\n", indexMatches[0:numm])
 	indexMatches = removeDuplicates(indexMatches[0:numm])
-	fmt.Printf("\nIndex matches: %v\n", indexMatches)
+	//fmt.Printf("\nIndex matches: %v\n", indexMatches)
 	return indexMatches
 
 }
 
 func getMatch(s string, path string) (string, int) {
 	partials := getPartials(s)
+	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
 
@@ -165,16 +167,16 @@ func getMatch(s string, path string) (string, int) {
 	matches := make([]string, len(indexMatches))
 	for i := 0; i < len(indexMatches); i++ {
 		if indexMatches[i] > 0 {
-			str, lastLine, err := ReadLine("cache/keys.list", indexMatches[i])
-			fmt.Printf("\n--%v %v %v--\n", str, i, indexMatches[i])
+			str, _, err := ReadLine("cache/keys.list", indexMatches[i])
+			//fmt.Printf("\n--%v %v %v--\n", str, i, indexMatches[i])
 			if err != nil {
-				fmt.Printf("Error reading line ", lastLine)
+				//fmt.Printf("Error reading line ", lastLine)
 			}
 			matches[i] = str
 		}
 	}
 
-	fmt.Printf("%v\n", matches)
+	//fmt.Printf("%v\n", matches)
 
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
@@ -214,13 +216,36 @@ func search(matches []string, target string, process int) {
 }
 
 func main() {
+	tuple_length = 4
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Println("Version 1.1 - 6-mer tuples, removing commons\n")
+		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n",tuple_length)
 		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
 		os.Mkdir("cache", 0775)
 		generateHash(os.Args[2])
+	     // open files r and w
+	     r, err := os.Open(os.Args[2])
+	     if err != nil {
+	         panic(err)
+	     }
+	     defer r.Close()
+
+	     w, err := os.Create("cache/keys.list")
+	     if err != nil {
+	         panic(err)
+	     }
+	     defer w.Close()
+
+	     // do the actual work
+	     n, err := io.Copy(w, r)
+	     if err != nil {
+	         panic(err)
+	     }
+
+	    fmt.Printf("Copied %v bytes\n", n)
+
+
 	} else {
 		match, lowest := getMatch(os.Args[1], os.Args[2])
 		fmt.Printf("%v|||%v\n", match, lowest)
