@@ -146,6 +146,9 @@ BEGIN;`
 
 	cmd_end := `COMMIT;
 
+create index idx1 on tuples(tuple);
+create index idx2 on words_tuples(word_id,tuple_id);
+create index idx3 on words(id,word);
 .exit
 `
 	fmt.Println(cmd_start)
@@ -325,10 +328,40 @@ func getMatch2(s string, path string) (string, int) {
 	}
 	defer db.Close()
 
-	orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
-	cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
+
+	//orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
+	//cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
+
+	orStatement := "tuple = '" + strings.Join(partials, "' or tuple = '") + "'"
+
+	cmd := "select id from tuples indexed by idx1 WHERE " + orStatement
+
 	fmt.Println(cmd)
 	rows, err := db.Query(cmd)
+	indexes := make([]string,10000)
+	num2 := 0
+	if err != nil {
+		panic(err)
+	}
+	for rows.Next() {
+		var word string
+		if err := rows.Scan(&word); err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", word)
+		indexes[num2] = word
+		num2++
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	indexes = indexes[0:num2]
+
+
+	orStatement = "words_tuples.tuple_id = " + strings.Join(indexes, " or words_tuples.tuple_id = ")
+	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id WHERE " + orStatement
+	fmt.Println(cmd)
+	rows, err = db.Query(cmd)
 	if err != nil {
 		panic(err)
 	}
@@ -344,6 +377,7 @@ func getMatch2(s string, path string) (string, int) {
 	if err := rows.Err(); err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("\nDatabase search of matches took %s \n", elapsed)
 	matches = matches[0:numm]
 
@@ -424,7 +458,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 3
+	tuple_length = 6
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
