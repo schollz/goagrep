@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/arbovm/levenshtein"
 	"github.com/cheggaaa/pb"
+    "database/sql"
+    _ "github.com/mattn/go-sqlite3"
 	"bufio"
 	"bytes"
 	"fmt"
@@ -21,6 +23,7 @@ var findings_leven []int
 var wg sync.WaitGroup
 var tuple_length int
 var file_tuple_length int
+var dbPath string
 
 func abs(x int) int {
 	if x < 0 {
@@ -91,6 +94,62 @@ func generateHash(path string) {
 	}
 }
 
+
+func generateHash2(path string) {
+
+	inFile, _ := os.Open(path)
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	scanner.Split(bufio.ScanLines)
+
+
+	words := make(map[string]int)
+	tuples := make(map[string]int)
+	numTuples := 0
+	numWords := 0
+
+	lineNum := 0
+	for scanner.Scan() {
+		lineNum++
+		s := strings.Replace(scanner.Text(), "/", "", -1)
+
+		_, ok := words[s]
+		if ok == false {
+			words[s] = numWords
+			numWords++
+		}		
+
+		partials := getPartials(s)
+		for i := 0; i < len(partials); i++ {
+			_, ok := tuples[partials[i]]
+			if ok == false {
+				tuples[partials[i]] = numTuples
+				numTuples++
+			}
+		}
+	}
+
+	fmt.Println("CREATE TABLE `tuples` (`id` INTEGER PRIMARY KEY, `tuple` VARCHAR(7) NOT NULL);CREATE TABLE `words` (`id` INTEGER PRIMARY KEY,`word` VARCHAR(100) NOT NULL);CREATE TABLE `words_tuples` (`id` INTEGER PRIMARY KEY AUTOINCREMENT,`word_id` INTEGER,`tuple_id` INTEGER);")
+    for k, v := range words {
+        fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v,k)
+ 		partials := getPartials(k)
+		for i := 0; i < len(partials); i++ {
+			fmt.Printf("INSERT INTO words_tuples (word_id,tuple_id) values (%v,%v);\n", v,tuples[partials[i]])		
+		}       
+    }
+
+    for k, v := range tuples {
+        fmt.Printf("INSERT INTO tuples (id,tuple) values (%v,'%v');\n", v,k)
+    }
+
+}
+
+func checkErr(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
 func addToCache(spartial string, s string) {
 	f, err := os.OpenFile("cache/"+spartial, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -126,8 +185,15 @@ func getPartials(s string) []string {
 	s = strings.Replace(s, "of", "", -1)
 	slen := len(s)
 	if slen <= tuple_length {
-		partials[num] = "zzzf"
-		num = num + 1
+		if slen <= 3 {
+			partials[num] = "zzz"
+			num = num + 1
+		} else {
+			for i := 0; i <= slen-3; i++ {
+				partials[num] = s[i : i+3]
+				num = num + 1
+			}
+		}
 	} else {
 		for i := 0; i <= slen-tuple_length; i++ {
 			partials[num] = s[i : i+tuple_length]
@@ -219,6 +285,71 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 
 }
 
+func getMatch2(s string, path string) (string, int) {
+	start := time.Now()
+	partials := getPartials(s)
+	elapsed := time.Since(start)
+	fmt.Printf("\nPartials took %s %v\n", elapsed,path)
+	//fmt.Printf("Partials: %v", partials)
+	runtime.GOMAXPROCS(8)
+	N := 8
+
+	start = time.Now()
+	matches := make([]string, 100000)
+	numm := 0
+
+
+	start = time.Now()
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	orStatment := "tuples.tuple like '" + strings.Join(partials,"' or tuples.tuple like '") + "'"
+	cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
+	fmt.Println(cmd)
+	rows, err := db.Query(cmd)
+	if err != nil {
+	    panic(err)
+	}
+	for rows.Next() {
+	    var word string
+	    if err := rows.Scan(&word); err != nil {
+	        panic(err)
+	    }
+	    fmt.Printf("%s\n", word)
+	    matches[numm] = word
+	    numm ++
+	}
+	if err := rows.Err(); err != nil {
+	    panic(err)
+	}
+	fmt.Printf("\nDatabase search of matches took %s \n", elapsed)
+	matches = matches[0:numm]
+
+	findings_leven = make([]int, N)
+	findings_matches = make([]string, N)
+
+	wg.Add(N)
+	for i := 0; i < N; i++ {
+		go search(matches[i*len(matches)/N:(i+1)*len(matches)/N], s, i)
+	}
+	wg.Wait()
+
+	lowest := 100
+	best_index := 0
+	for i := 0; i < len(findings_leven); i++ {
+		if findings_leven[i] < lowest {
+			lowest = findings_leven[i]
+			best_index = i
+		}
+	}
+
+	return findings_matches[best_index], lowest
+}
+
+
 func getMatch(s string, path string) (string, int) {
 	start := time.Now()
 	partials := getPartials(s)
@@ -273,7 +404,11 @@ func search(matches []string, target string, process int) {
 	findings_leven[process] = bestLevenshtein
 }
 
+
+
+
 func main() {
+	dbPath = "./words.db"
 	tuple_length = 6
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
@@ -282,30 +417,10 @@ func main() {
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
 		os.Mkdir("cache", 0775)
-		generateHash(os.Args[2])
-		// open files r and w
-		r, err := os.Open(os.Args[2])
-		if err != nil {
-			panic(err)
-		}
-		defer r.Close()
-
-		w, err := os.Create("cache/keys.list")
-		if err != nil {
-			panic(err)
-		}
-		defer w.Close()
-
-		// do the actual work
-		n, err := io.Copy(w, r)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("Copied %v bytes\n", n)
+		generateHash2(os.Args[2])
 
 	} else {
-		match, lowest := getMatch(os.Args[1], os.Args[2])
+		match, lowest := getMatch2(os.Args[1], os.Args[2])
 		fmt.Printf("%v|||%v\n", match, lowest)
 	}
 }
