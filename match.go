@@ -1,15 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"github.com/arbovm/levenshtein"
+	"github.com/cheggaaa/pb"
+	"bufio"
+	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 //GLOBALS
@@ -17,6 +20,7 @@ var findings_matches []string
 var findings_leven []int
 var wg sync.WaitGroup
 var tuple_length int
+var file_tuple_length int
 
 func abs(x int) int {
 	if x < 0 {
@@ -27,15 +31,44 @@ func abs(x int) int {
 	return x
 }
 
+func lineCounter(r io.Reader) (int, error) {
+	buf := make([]byte, 8196)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			return count, err
+		}
+
+		count += bytes.Count(buf[:c], lineSep)
+
+		if err == io.EOF {
+			break
+		}
+	}
+
+	return count, nil
+}
+
 func generateHash(path string) {
+	inFile2, _ := os.Open(path)
+	numLines, _ := lineCounter(inFile2)
+	inFile2.Close()
+
 	inFile, _ := os.Open(path)
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
 	mm := make(map[string]string)
+
+	fmt.Printf("Building map...\n")
+	bar := pb.StartNew(numLines)
 	lineNum := 0
 	for scanner.Scan() {
 		lineNum++
+		bar.Increment()
 		s := strings.Replace(scanner.Text(), "/", "", -1)
 		//addToCache("keys.list", s)
 		partials := getPartials(s)
@@ -50,9 +83,11 @@ func generateHash(path string) {
 			//addToCache(partials[i], strconv.Itoa(lineNum))
 		}
 	}
+	bar.FinishPrint("Finished.\n")
+	fmt.Printf("Building cache...")
 	for k := range mm {
 		//fmt.Printf("%v : %v\n", k, mm[k])
-		addToCache(k[0:2], k+" "+mm[k])
+		addToCache(k[0:file_tuple_length], k+" "+mm[k])
 	}
 }
 
@@ -133,7 +168,7 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 	numm := 0
 	for i := 0; i < len(partials); i++ {
 
-		inFile, _ := os.Open(path + partials[i][0:2])
+		inFile, _ := os.Open(path + partials[i][0:file_tuple_length])
 		defer inFile.Close()
 		scanner := bufio.NewScanner(inFile)
 		scanner.Split(bufio.ScanLines)
@@ -157,13 +192,18 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 }
 
 func getMatch(s string, path string) (string, int) {
+	start := time.Now()
 	partials := getPartials(s)
+	elapsed := time.Since(start)
+	fmt.Printf("Partials took %s", elapsed)
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
 
+	start = time.Now()
 	indexMatches := getIndiciesFromPartial(partials, path)
-
+	fmt.Printf("Indices from partials took %s", time.Since(start))
+	
 	matches := make([]string, len(indexMatches))
 	for i := 0; i < len(indexMatches); i++ {
 		if indexMatches[i] > 0 {
@@ -216,35 +256,35 @@ func search(matches []string, target string, process int) {
 }
 
 func main() {
-	tuple_length = 4
+	tuple_length = 6
+	file_tuple_length = 4
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n",tuple_length)
+		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n", tuple_length)
 		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
 		os.Mkdir("cache", 0775)
 		generateHash(os.Args[2])
-	     // open files r and w
-	     r, err := os.Open(os.Args[2])
-	     if err != nil {
-	         panic(err)
-	     }
-	     defer r.Close()
+		// open files r and w
+		r, err := os.Open(os.Args[2])
+		if err != nil {
+			panic(err)
+		}
+		defer r.Close()
 
-	     w, err := os.Create("cache/keys.list")
-	     if err != nil {
-	         panic(err)
-	     }
-	     defer w.Close()
+		w, err := os.Create("cache/keys.list")
+		if err != nil {
+			panic(err)
+		}
+		defer w.Close()
 
-	     // do the actual work
-	     n, err := io.Copy(w, r)
-	     if err != nil {
-	         panic(err)
-	     }
+		// do the actual work
+		n, err := io.Copy(w, r)
+		if err != nil {
+			panic(err)
+		}
 
-	    fmt.Printf("Copied %v bytes\n", n)
-
+		fmt.Printf("Copied %v bytes\n", n)
 
 	} else {
 		match, lowest := getMatch(os.Args[1], os.Args[2])
