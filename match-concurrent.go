@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"runtime"
+	"strconv"
 )
 
 //GLOBALS
@@ -29,12 +30,15 @@ func generateHash(path string) {
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
-
+	
+	lineNum := 0
 	for scanner.Scan() {
+		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
+		addToCache("keys.list",s)
 		partials, num := getPartials(s)
 		for i := 0; i < num; i++ {
-			addToCache(partials[i], s)
+			addToCache(partials[i], strconv.Itoa(lineNum))
 		}
 	}
 }
