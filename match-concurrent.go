@@ -31,16 +31,27 @@ func generateHash(path string) {
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
-
+	mm := make(map[string]string)
 	lineNum := 0
 	for scanner.Scan() {
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
-		addToCache("keys.list", s)
-		partials, num := getPartials(s)
-		for i := 0; i < num; i++ {
-			addToCache(partials[i], strconv.Itoa(lineNum))
+		//addToCache("keys.list", s)
+		partials := getPartials(s)
+		for i := 0; i < len(partials); i++ {
+			_, ok := mm[partials[i]]
+			if ok == true {
+				mm[partials[i]] = mm[partials[i]] + " " + strconv.Itoa(lineNum)
+			} else {
+				mm[partials[i]] = strconv.Itoa(lineNum)
+
+			}
+			//addToCache(partials[i], strconv.Itoa(lineNum))
 		}
+	}
+	for k := range mm {
+		fmt.Printf("%v : %v\n", k, mm[k])
+		addToCache(k[0:2], k+" "+mm[k])
 	}
 }
 
@@ -67,7 +78,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func getPartials(s string) ([]string, int) {
+func getPartials(s string) []string {
 	partials := make([]string, 100000)
 	num := 0
 	s = strings.ToLower(s)
@@ -87,7 +98,7 @@ func getPartials(s string) ([]string, int) {
 			num = num + 1
 		}
 	}
-	return partials, num
+	return partials[0:num]
 }
 
 func removeDuplicates(a []int) []int {
@@ -116,45 +127,51 @@ func ReadLine(file string, lineNum int) (line string, lastLine int, err error) {
 	return line, lastLine, io.EOF
 }
 
-func getMatch(s string, path string) (string, int) {
-	partials, num := getPartials(s)
-	numm := 0
-	runtime.GOMAXPROCS(8)
-	N := 8
-
+func getIndiciesFromPartial(partials []string, path string) []int {
 	indexMatches := make([]int, 100000)
+	numm := 0
+	for i := 0; i < len(partials); i++ {
 
-	for i := 0; i < num; i++ {
-
-		inFile, _ := os.Open(path + partials[i])
+		inFile, _ := os.Open(path + partials[i][0:2])
 		defer inFile.Close()
 		scanner := bufio.NewScanner(inFile)
 		scanner.Split(bufio.ScanLines)
 
 		for scanner.Scan() {
-			//if stringInSlice(scanner.Text(),matches) == false { ITS NOT WORTH LOOKING THROUGH DUPLICATES
-			sInt, err := strconv.Atoi(scanner.Text())
-			if err != nil {
-				fmt.Printf("Error converting")
+			scan := scanner.Text()
+			if partials[i] == scan[0:6] {
+				for _, k := range strings.Split(scan[6:], " ") {
+					indexMatches[numm], _ = strconv.Atoi(k)
+					numm++
+				}
 			}
-			indexMatches[numm] = sInt
-			numm = numm + 1
-			// }
 		}
 
 	}
-	fmt.Printf("Removing duplicates...")
+	fmt.Printf("\nIndex matches: %v\n", indexMatches[0:numm])
 	indexMatches = removeDuplicates(indexMatches[0:numm])
-	fmt.Printf("%v\n", indexMatches)
+	fmt.Printf("\nIndex matches: %v\n", indexMatches)
+	return indexMatches
+
+}
+
+func getMatch(s string, path string) (string, int) {
+	partials := getPartials(s)
+	runtime.GOMAXPROCS(8)
+	N := 8
+
+	indexMatches := getIndiciesFromPartial(partials, path)
+
 	matches := make([]string, len(indexMatches))
 	for i := 0; i < len(indexMatches); i++ {
-		str, lastLine, err := ReadLine("cache/keys.list", indexMatches[i])
-		fmt.Printf("%v %v %v\n", str, i, indexMatches[i])
-		if err != nil {
-			fmt.Printf("Error reading line ", lastLine)
+		if indexMatches[i] > 0 {
+			str, lastLine, err := ReadLine("cache/keys.list", indexMatches[i])
+			fmt.Printf("\n--%v %v %v--\n", str, i, indexMatches[i])
+			if err != nil {
+				fmt.Printf("Error reading line ", lastLine)
+			}
+			matches[i] = str
 		}
-		matches[i] = str
-
 	}
 
 	fmt.Printf("%v\n", matches)
