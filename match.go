@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
+	//"time"
 )
 
 //GLOBALS
@@ -268,7 +268,7 @@ outerLoop:
 				matches[num] = sc.Text()
 				num++
 				lineNums = lineNums[:i+copy(lineNums[i:], lineNums[i+1:])]
-				fmt.Printf("lineNums:%v %v\n", lineNums, len(lineNums))
+				//fmt.Printf("lineNums:%v %v\n", lineNums, len(lineNums))
 				break innerLoop
 			}
 		}
@@ -276,7 +276,7 @@ outerLoop:
 			break outerLoop
 		}
 	}
-	fmt.Printf("lastLine:%v %v\n", lastLine, matches[0:num])
+	//fmt.Printf("lastLine:%v %v\n", lastLine, matches[0:num])
 	return matches[0:num]
 }
 
@@ -309,19 +309,20 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 }
 
 func getMatch2(s string, path string) (string, int) {
-	start := time.Now()
+	//start := time.Now()
 	partials := getPartials(s)
-	elapsed := time.Since(start)
-	fmt.Printf("\nPartials took %s %v\n", elapsed, path)
+	//elapsed := time.Since(start)
+
+	//fmt.Printf("\nPartials took %s %v\n", elapsed, path)
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
 
-	start = time.Now()
+	//start = time.Now()
 	matches := make([]string, 100000)
 	numm := 0
 
-	start = time.Now()
+	//start = time.Now()
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		panic(err)
@@ -336,7 +337,7 @@ func getMatch2(s string, path string) (string, int) {
 
 	cmd := "select id from tuples indexed by idx1 WHERE " + orStatement
 
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
 	rows, err := db.Query(cmd)
 	indexes := make([]string,10000)
 	num2 := 0
@@ -348,7 +349,7 @@ func getMatch2(s string, path string) (string, int) {
 		if err := rows.Scan(&word); err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s\n", word)
+		//fmt.Printf("%s\n", word)
 		indexes[num2] = word
 		num2++
 	}
@@ -360,7 +361,7 @@ func getMatch2(s string, path string) (string, int) {
 
 	orStatement = "words_tuples.tuple_id = " + strings.Join(indexes, " or words_tuples.tuple_id = ")
 	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id WHERE " + orStatement
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
 	if err != nil {
 		panic(err)
@@ -370,7 +371,7 @@ func getMatch2(s string, path string) (string, int) {
 		if err := rows.Scan(&word); err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s\n", word)
+		//fmt.Printf("%s\n", word)
 		matches[numm] = word
 		numm++
 	}
@@ -378,7 +379,7 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 
-	fmt.Printf("\nDatabase search of matches took %s \n", elapsed)
+	//fmt.Printf("\nDatabase search of matches took %s \n", elapsed)
 	matches = matches[0:numm]
 
 	findings_leven = make([]int, N)
@@ -403,21 +404,15 @@ func getMatch2(s string, path string) (string, int) {
 }
 
 func getMatch(s string, path string) (string, int) {
-	start := time.Now()
 	partials := getPartials(s)
-	elapsed := time.Since(start)
-	fmt.Printf("\nPartials took %s\n", elapsed)
+
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
 
-	start = time.Now()
 	indexMatches := getIndiciesFromPartial(partials, path)
-	fmt.Printf("\nIndices from partials took %s\n", time.Since(start))
 
-	start = time.Now()
 	matches := ReadLines("cache/keys.list", indexMatches[1:])
-	fmt.Printf("\nReading actual %v matches from all at once from keys.list took %s\n", len(indexMatches), time.Since(start))
 
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
@@ -458,7 +453,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 3
+	tuple_length = 6
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
