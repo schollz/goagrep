@@ -1,6 +1,5 @@
 # go-string-matching
 
-
 Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples). Run 1000 times and taking average.
 
 | Language | Runtime  |
@@ -9,13 +8,27 @@ Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples)
 | Go N=1 | 3-6 ms |
 | Go N=8 | 2-4 ms |
 
-# Use
+# Install
+
+First make sure you have Go installed then use:
 
 ```
+go get github.com/arbovm/levenshtein
+go get github.com/cheggaaa/pb
+go get github.com/mattn/go-sqlite3
 go build match.go
 ```
 
-To use, you first must build a database of words
+
+# Run 
+
+To use, you first must build a database of words:
+
+```
+wget http://www-personal.umich.edu/%7Ejlawler/wordlist
+```
+
+And then build the word list
 
 ```
 ./match build wordlist | sqlite3 words.db
@@ -24,7 +37,7 @@ To use, you first must build a database of words
 Then to run simply use
 
 ```
-./match "word or phrase"
+./match "madgascar"
 ```
 
 # To do

@@ -319,7 +319,7 @@ func getMatch2(s string, path string) (string, int) {
 	numm := 0
 
 	start = time.Now()
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		panic(err)
 	}
@@ -424,12 +424,12 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 6
+	tuple_length = 3
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n", tuple_length)
-		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
-		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
+		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
+		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds SQL file with word insertions\n")
+		fmt.Println("./match-concurrent 'word or words to match' /directions/to/words.database\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
 		os.Mkdir("cache", 0775)
 		generateHash2(os.Args[2])
