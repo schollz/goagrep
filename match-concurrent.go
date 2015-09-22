@@ -9,6 +9,7 @@ import (
 	"sync"
 	"runtime"
 	"strconv"
+	"io"
 )
 
 //GLOBALS
@@ -89,12 +90,40 @@ func getPartials(s string) ([]string, int) {
 	return partials, num
 }
 
+func removeDuplicates(a []int) []int { 
+        result := []int{} 
+        seen := map[int]int{} 
+        for _, val := range a { 
+                if _, ok := seen[val]; !ok { 
+                        result = append(result, val) 
+                        seen[val] = val 
+                } 
+        } 
+        return result 
+} 
+
+func ReadLine(file string, lineNum int) (line string, lastLine int, err error) {
+	r, _ := os.Open(file)
+	defer r.Close()
+    sc := bufio.NewScanner(r)
+    for sc.Scan() {
+        lastLine++
+        if lastLine == lineNum {
+            // you can return sc.Bytes() if you need output in []bytes
+            return sc.Text(), lastLine, sc.Err()
+        }
+    }
+    return line, lastLine, io.EOF
+}
+
 func getMatch(s string, path string) (string, int) {
 	partials, num := getPartials(s)
-	matches := make([]string, 1000000)
 	numm := 0
 	runtime.GOMAXPROCS(8)
 	N := 8
+
+	indexMatches := make([]int,100000)
+
 	for i := 0; i < num; i++ {
 
 		inFile, _ := os.Open(path + partials[i])
@@ -104,21 +133,41 @@ func getMatch(s string, path string) (string, int) {
 
 		for scanner.Scan() {
 			//if stringInSlice(scanner.Text(),matches) == false { ITS NOT WORTH LOOKING THROUGH DUPLICATES
-			matches[numm] = scanner.Text()
+			sInt, err := strconv.Atoi(scanner.Text())
+			if err != nil {
+			    fmt.Printf("Error converting")
+			}
+			indexMatches[numm] = sInt
 			numm = numm + 1
 			// }
 		}
 
 	}
+	fmt.Printf("Removing duplicates...")
+	indexMatches = removeDuplicates(indexMatches[0:numm])
+	fmt.Printf("%v\n", indexMatches)
+	matches := make([]string, len(indexMatches))
+	for i := 0; i < len(indexMatches); i ++ {
+		str, lastLine, err := ReadLine("cache/keys.list",indexMatches[i])
+		fmt.Printf("%v %v %v\n",str, i,indexMatches[i])
+		if err != nil {
+			fmt.Printf("Error reading line ",lastLine)
+		}
+		matches[i] = str
 
-	matches2 := make([]string, numm)
-	matches2 = matches[0:numm]
+}
+
+
+
+	fmt.Printf("%v\n", matches)
+
+
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
 
 	wg.Add(N)
 	for i := 0; i < N; i++ {
-		go search(matches2[i*len(matches2)/N:(i+1)*len(matches2)/N], s, i)
+		go search(matches[i*len(matches)/N:(i+1)*len(matches)/N], s, i)
 	}
 	wg.Wait()
 
