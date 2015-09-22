@@ -198,7 +198,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Println("Version 1.0 - 4-mer tuples\n")
+		fmt.Println("Version 1.1 - 6-mer tuples, removing commons\n")
 		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
