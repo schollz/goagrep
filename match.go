@@ -259,7 +259,7 @@ func main() {
 	tuple_length = 6
 	file_tuple_length = 4
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n", tuple_length)
+		fmt.Printf("Version 1.1 - %v-mer tuples in %v-mer files, removing commons\n", tuple_length, file_tuple_length)
 		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
