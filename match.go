@@ -163,6 +163,34 @@ func ReadLine(file string, lineNum int) (line string, lastLine int, err error) {
 	return line, lastLine, io.EOF
 }
 
+func ReadLines(file string, lineNums []int) ([]string) {
+	matches := make([]string, 100000)
+	num := 0
+	lastLine := 0
+	r, _ := os.Open(file)
+	defer r.Close()
+	sc := bufio.NewScanner(r)
+	outerLoop:
+		for sc.Scan() {
+			lastLine++
+			innerLoop:
+				for i := 0; i<len(lineNums); i++ {
+					if lastLine == lineNums[i] {
+						matches[num] = sc.Text()
+						num++
+						lineNums = lineNums[:i+copy(lineNums[i:], lineNums[i+1:])]
+						fmt.Printf("lineNums:%v %v\n",lineNums,len(lineNums))
+						break innerLoop
+					}
+				}
+			if len(lineNums)<1 {
+				break outerLoop
+			}
+		}
+	fmt.Printf("lastLine:%v %v\n",lastLine,matches[0:num])
+	return matches[0:num]
+}
+
 func getIndiciesFromPartial(partials []string, path string) []int {
 	indexMatches := make([]int, 100000)
 	numm := 0
@@ -195,28 +223,18 @@ func getMatch(s string, path string) (string, int) {
 	start := time.Now()
 	partials := getPartials(s)
 	elapsed := time.Since(start)
-	fmt.Printf("Partials took %s", elapsed)
+	fmt.Printf("\nPartials took %s\n", elapsed)
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
 
 	start = time.Now()
 	indexMatches := getIndiciesFromPartial(partials, path)
-	fmt.Printf("Indices from partials took %s", time.Since(start))
+	fmt.Printf("\nIndices from partials took %s\n", time.Since(start))
 	
-	matches := make([]string, len(indexMatches))
-	for i := 0; i < len(indexMatches); i++ {
-		if indexMatches[i] > 0 {
-			str, _, err := ReadLine("cache/keys.list", indexMatches[i])
-			//fmt.Printf("\n--%v %v %v--\n", str, i, indexMatches[i])
-			if err != nil {
-				//fmt.Printf("Error reading line ", lastLine)
-			}
-			matches[i] = str
-		}
-	}
-
-	//fmt.Printf("%v\n", matches)
+	start = time.Now()
+	matches := ReadLines("cache/keys.list", indexMatches[1:])
+	fmt.Printf("\nReading actual %v matches from all at once from keys.list took %s\n", len(indexMatches),time.Since(start))
 
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
@@ -257,9 +275,9 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	tuple_length = 6
-	file_tuple_length = 4
+	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
-		fmt.Printf("Version 1.1 - %v-mer tuples in %v-mer files, removing commons\n", tuple_length, file_tuple_length)
+		fmt.Printf("Version 1.1 - %v-mer tuples, removing commons\n", tuple_length)
 		fmt.Println("./match-concurrent build <NAME OF WORDLIST> - builds cache/ folder in current directory\n")
 		fmt.Println("./match-concurrent 'word or words to match' /directions/to/cache/\n")
 	} else if strings.EqualFold(os.Args[1], "build") {
