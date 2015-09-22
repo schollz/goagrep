@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/arbovm/levenshtein"
+	"io"
 	"os"
-	"strings"
-	"sync"
 	"runtime"
 	"strconv"
-	"io"
+	"strings"
+	"sync"
 )
 
 //GLOBALS
@@ -31,12 +31,12 @@ func generateHash(path string) {
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
-	
+
 	lineNum := 0
 	for scanner.Scan() {
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
-		addToCache("keys.list",s)
+		addToCache("keys.list", s)
 		partials, num := getPartials(s)
 		for i := 0; i < num; i++ {
 			addToCache(partials[i], strconv.Itoa(lineNum))
@@ -90,30 +90,30 @@ func getPartials(s string) ([]string, int) {
 	return partials, num
 }
 
-func removeDuplicates(a []int) []int { 
-        result := []int{} 
-        seen := map[int]int{} 
-        for _, val := range a { 
-                if _, ok := seen[val]; !ok { 
-                        result = append(result, val) 
-                        seen[val] = val 
-                } 
-        } 
-        return result 
-} 
+func removeDuplicates(a []int) []int {
+	result := []int{}
+	seen := map[int]int{}
+	for _, val := range a {
+		if _, ok := seen[val]; !ok {
+			result = append(result, val)
+			seen[val] = val
+		}
+	}
+	return result
+}
 
 func ReadLine(file string, lineNum int) (line string, lastLine int, err error) {
 	r, _ := os.Open(file)
 	defer r.Close()
-    sc := bufio.NewScanner(r)
-    for sc.Scan() {
-        lastLine++
-        if lastLine == lineNum {
-            // you can return sc.Bytes() if you need output in []bytes
-            return sc.Text(), lastLine, sc.Err()
-        }
-    }
-    return line, lastLine, io.EOF
+	sc := bufio.NewScanner(r)
+	for sc.Scan() {
+		lastLine++
+		if lastLine == lineNum {
+			// you can return sc.Bytes() if you need output in []bytes
+			return sc.Text(), lastLine, sc.Err()
+		}
+	}
+	return line, lastLine, io.EOF
 }
 
 func getMatch(s string, path string) (string, int) {
@@ -122,7 +122,7 @@ func getMatch(s string, path string) (string, int) {
 	runtime.GOMAXPROCS(8)
 	N := 8
 
-	indexMatches := make([]int,100000)
+	indexMatches := make([]int, 100000)
 
 	for i := 0; i < num; i++ {
 
@@ -135,7 +135,7 @@ func getMatch(s string, path string) (string, int) {
 			//if stringInSlice(scanner.Text(),matches) == false { ITS NOT WORTH LOOKING THROUGH DUPLICATES
 			sInt, err := strconv.Atoi(scanner.Text())
 			if err != nil {
-			    fmt.Printf("Error converting")
+				fmt.Printf("Error converting")
 			}
 			indexMatches[numm] = sInt
 			numm = numm + 1
@@ -147,20 +147,17 @@ func getMatch(s string, path string) (string, int) {
 	indexMatches = removeDuplicates(indexMatches[0:numm])
 	fmt.Printf("%v\n", indexMatches)
 	matches := make([]string, len(indexMatches))
-	for i := 0; i < len(indexMatches); i ++ {
-		str, lastLine, err := ReadLine("cache/keys.list",indexMatches[i])
-		fmt.Printf("%v %v %v\n",str, i,indexMatches[i])
+	for i := 0; i < len(indexMatches); i++ {
+		str, lastLine, err := ReadLine("cache/keys.list", indexMatches[i])
+		fmt.Printf("%v %v %v\n", str, i, indexMatches[i])
 		if err != nil {
-			fmt.Printf("Error reading line ",lastLine)
+			fmt.Printf("Error reading line ", lastLine)
 		}
 		matches[i] = str
 
-}
-
-
+	}
 
 	fmt.Printf("%v\n", matches)
-
 
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
@@ -180,7 +177,7 @@ func getMatch(s string, path string) (string, int) {
 		}
 	}
 
-	return findings_matches[best_index],lowest
+	return findings_matches[best_index], lowest
 }
 
 func search(matches []string, target string, process int) {
@@ -208,7 +205,7 @@ func main() {
 		os.Mkdir("cache", 0775)
 		generateHash(os.Args[2])
 	} else {
-		match,lowest := getMatch(os.Args[1],os.Args[2])
-		fmt.Printf("%v|||%v\n", match,lowest)
+		match, lowest := getMatch(os.Args[1], os.Args[2])
+		fmt.Printf("%v|||%v\n", match, lowest)
 	}
 }
