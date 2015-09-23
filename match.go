@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	//"time"
+	"time"
 )
 
 //GLOBALS
@@ -148,7 +148,6 @@ BEGIN;`
 
 create index idx1 on tuples(tuple);
 create index idx2 on words_tuples(word_id,tuple_id);
-create index idx3 on words(id,word);
 .exit
 `
 	fmt.Println(cmd_start)
@@ -309,11 +308,10 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 }
 
 func getMatch2(s string, path string) (string, int) {
-	//start := time.Now()
+	start := time.Now()
 	partials := getPartials(s)
-	//elapsed := time.Since(start)
 
-	//fmt.Printf("\nPartials took %s %v\n", elapsed, path)
+	fmt.Printf("\nPartials took %s %v\n", time.Since(start), path)
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
@@ -332,12 +330,12 @@ func getMatch2(s string, path string) (string, int) {
 
 	//orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
 	//cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
-
+	start = time.Now()
 	orStatement := "tuple = '" + strings.Join(partials, "' or tuple = '") + "'"
-
 	cmd := "select id from tuples indexed by idx1 WHERE " + orStatement
+	cmd = "select id from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
 
-	//fmt.Println(cmd)
+	fmt.Println(cmd)
 	rows, err := db.Query(cmd)
 	indexes := make([]string,10000)
 	num2 := 0
@@ -357,11 +355,39 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 	indexes = indexes[0:num2]
+	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
+	fmt.Printf("\nindexes: %v\n",indexes)
 
 
-	orStatement = "words_tuples.tuple_id = " + strings.Join(indexes, " or words_tuples.tuple_id = ")
-	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id WHERE " + orStatement
-	//fmt.Println(cmd)
+	start = time.Now()
+	cmd = "SELECT DISTINCT word_id FROM words_tuples INDEXED BY idx2 WHERE tuple_id IN (" + strings.Join(indexes, ",") + ")"
+	fmt.Println(cmd)
+	rows, err = db.Query(cmd)
+	indexes2 := make([]string,10000)
+	num3 := 0
+	if err != nil {
+		panic(err)
+	}
+	for rows.Next() {
+		var word string
+		if err := rows.Scan(&word); err != nil {
+			panic(err)
+		}
+		//fmt.Printf("%s\n", word)
+		indexes2[num3] = word
+		num3++
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	indexes2 = indexes2[0:num3]
+	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
+	fmt.Printf("\nindexes: %v\n",indexes2)
+
+
+	start = time.Now()
+	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes2, ",") + ")"
+	fmt.Println(cmd)
 	rows, err = db.Query(cmd)
 	if err != nil {
 		panic(err)
@@ -379,9 +405,35 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 
-	//fmt.Printf("\nDatabase search of matches took %s \n", elapsed)
+	fmt.Printf("\nDatabase search 3 took %s \n", time.Since(start))
 	matches = matches[0:numm]
 
+/*
+	start = time.Now()
+	orStatement = "words_tuples.tuple_id = " + strings.Join(indexes, " or words_tuples.tuple_id = ")
+	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id WHERE " + orStatement
+	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id AND words_tuples.tuple_id IN (" + strings.Join(indexes, ",") + ")"
+	fmt.Println(cmd)
+	rows, err = db.Query(cmd)
+	if err != nil {
+		panic(err)
+	}
+	for rows.Next() {
+		var word string
+		if err := rows.Scan(&word); err != nil {
+			panic(err)
+		}
+		//fmt.Printf("%s\n", word)
+		matches[numm] = word
+		numm++
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
+	matches = matches[0:numm]
+*/
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
 
@@ -453,7 +505,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 6
+	tuple_length = 3
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
