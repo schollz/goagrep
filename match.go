@@ -110,12 +110,11 @@ func generateHash2(path string) {
 	for scanner.Scan() {
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
-		s = strings.Replace(s, "'","", -1)
+		s = strings.Replace(s, "'", "", -1)
 
 		_, ok := words[s]
 		if ok == false {
 			words[s] = numWords
-
 
 			partials := getPartials(s)
 			for i := 0; i < len(partials); i++ {
@@ -124,13 +123,12 @@ func generateHash2(path string) {
 					tuples[partials[i]] = strconv.Itoa(numWords)
 					numTuples++
 				} else {
-					tuples[partials[i]] += " " + strconv.Itoa(numWords)					
+					tuples[partials[i]] += " " + strconv.Itoa(numWords)
 				}
 			}
 
 			numWords++
 		}
-
 
 	}
 
@@ -330,34 +328,32 @@ func getMatch2(s string, path string) (string, int) {
 	defer db.Close()
 	/*
 
-	buf := bytes.NewBuffer(nil)
-	  f, _ := os.Open(path) // Error handling elided for brevity.
-	  io.Copy(buf, f)           // Error handling elided for brevity.
-	  f.Close()
-	file := string(buf.Bytes())
-	fmt.Printf("%v",file)
-	db, err := sql.Open("sqlite3",":memory:")
-	if err != nil {
-		panic(err)
-	}
-	db.Exec(file)
-	rowsz, errz := db.Query("select count(id) from words")
-	if errz != nil {
-		panic(err)
-	}
-	for rowsz.Next() {
-		var word string
-		if err := rowsz.Scan(&word); err != nil {
+		buf := bytes.NewBuffer(nil)
+		  f, _ := os.Open(path) // Error handling elided for brevity.
+		  io.Copy(buf, f)           // Error handling elided for brevity.
+		  f.Close()
+		file := string(buf.Bytes())
+		fmt.Printf("%v",file)
+		db, err := sql.Open("sqlite3",":memory:")
+		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s\n", word)
-	}
-	if err := rowsz.Err(); err != nil {
-		panic(err)
-	}
-*/
-
-
+		db.Exec(file)
+		rowsz, errz := db.Query("select count(id) from words")
+		if errz != nil {
+			panic(err)
+		}
+		for rowsz.Next() {
+			var word string
+			if err := rowsz.Scan(&word); err != nil {
+				panic(err)
+			}
+			fmt.Printf("%s\n", word)
+		}
+		if err := rowsz.Err(); err != nil {
+			panic(err)
+		}
+	*/
 
 	//orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
 	//cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
@@ -383,26 +379,25 @@ func getMatch2(s string, path string) (string, int) {
 	if err := rows.Err(); err != nil {
 		panic(err)
 	}
-	strIndexes := make([]int,10000)
+	strIndexes := make([]int, 100000)
 	ind := 0
-	for _,element := range strings.Split(indexString," ") {
+	for _, element := range strings.Split(indexString, " ") {
 		theNum, _ := strconv.Atoi(element)
 		if theNum > 0 {
-strIndexes[ind] = theNum
-ind++
-}
-}
+			strIndexes[ind] = theNum
+			ind++
+		}
+	}
 	strIndexes = strIndexes[0:ind]
 	//fmt.Printf("strIndexes: %v\n",strIndexes)
 	strIndexes = removeDuplicates(strIndexes)
 	//fmt.Printf("strIndexes: %v\n",strIndexes)
-	indexes := make([]string,len(strIndexes))
+	indexes := make([]string, len(strIndexes))
 	for ind, value := range strIndexes {
 		indexes[ind] = strconv.Itoa(value)
 	}
 	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
 	//fmt.Printf("\nindexes: %v\n",indexes)
-
 
 	start = time.Now()
 	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes, ",") + ")"
@@ -426,9 +421,6 @@ ind++
 
 	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
 	matches = matches[0:numm]
-
-
-
 
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
@@ -501,7 +493,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length =3
+	tuple_length = 6
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)

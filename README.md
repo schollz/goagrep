@@ -2,10 +2,10 @@
 
 Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples). Run 1000 times and taking average.
 
-| Language | Runtime  |
-|--------|--------|
-| Python | 21 ms  |
-| Go | 9 ms |
+| Language | Runtime  | Memory |
+|--------|--------|--------|
+| Python | 21 ms  | Requires loading all data into memory |
+| Go | 15-20 ms | Requires loading no data into memory! |
 
 # Install
 
@@ -15,6 +15,7 @@ First make sure you have Go installed then use:
 go get github.com/arbovm/levenshtein
 go get github.com/cheggaaa/pb
 go get github.com/mattn/go-sqlite3
+go get github.com/codegangsta/cli
 go build match.go
 ```
 
@@ -41,7 +42,7 @@ Then to run simply use
 
 # To do
 
-- User friendliness?
+- Make commmand line stuff with github.com/codegangsta/cli
 - ~Command line help~
 - ~Command line for generating cache~
 - ~Convert to lowercase for converting~
