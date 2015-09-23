@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
+	//"time"
 )
 
 //GLOBALS
@@ -309,10 +309,10 @@ func getIndiciesFromPartial(partials []string, path string) []int {
 }
 
 func getMatch2(s string, path string) (string, int) {
-	start := time.Now()
+	//start := time.Now()
 	partials := getPartials(s)
 
-	fmt.Printf("\nPartials took %s %v\n", time.Since(start), path)
+	//fmt.Printf("\nPartials took %s %v\n", time.Since(start), path)
 	//fmt.Printf("Partials: %v", partials)
 	runtime.GOMAXPROCS(8)
 	N := 8
@@ -331,7 +331,7 @@ func getMatch2(s string, path string) (string, int) {
 
 	//orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
 	//cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
-	start = time.Now()
+	//start = time.Now()
 	orStatement := "tuple = '" + strings.Join(partials, "' or tuple = '") + "'"
 	cmd := "select id from tuples indexed by idx1 WHERE " + orStatement
 	cmd = "select id from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
@@ -356,10 +356,10 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 	indexes = indexes[0:num2]
-	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
+	//fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
 	//fmt.Printf("\nindexes: %v\n",indexes)
 
-	start = time.Now()
+	//start = time.Now()
 	cmd = "SELECT DISTINCT word_id FROM words_tuples INDEXED BY idx2 WHERE tuple_id IN (" + strings.Join(indexes, ",") + ")"
 	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
@@ -381,11 +381,11 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 	indexes2 = indexes2[0:num3]
-	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
+	//fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
 	//fmt.Printf("\nindexes: %v\n",indexes2)
 
 
-	start = time.Now()
+	//start = time.Now()
 	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes2, ",") + ")"
 	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
@@ -405,7 +405,7 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 
-	fmt.Printf("\nDatabase search 3 took %s \n", time.Since(start))
+	//fmt.Printf("\nDatabase search 3 took %s \n", time.Since(start))
 	matches = matches[0:numm]
 
 
@@ -482,7 +482,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 3
+	tuple_length =6
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
