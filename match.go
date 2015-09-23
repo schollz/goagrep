@@ -110,6 +110,7 @@ func generateHash2(path string) {
 	for scanner.Scan() {
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
+		s = strings.Replace(s, "'","", -1)
 
 		_, ok := words[s]
 		if ok == false {
@@ -127,7 +128,7 @@ func generateHash2(path string) {
 		}
 	}
 
-	cmd_start := `.echo ON
+	cmd_start := `.echo OFF
 PRAGMA cache_size = 800000;
 PRAGMA synchronous = OFF;
 PRAGMA journal_mode = OFF;
