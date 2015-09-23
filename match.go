@@ -336,7 +336,7 @@ func getMatch2(s string, path string) (string, int) {
 	cmd := "select id from tuples indexed by idx1 WHERE " + orStatement
 	cmd = "select id from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
 
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
 	rows, err := db.Query(cmd)
 	indexes := make([]string,10000)
 	num2 := 0
@@ -357,12 +357,11 @@ func getMatch2(s string, path string) (string, int) {
 	}
 	indexes = indexes[0:num2]
 	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
-	fmt.Printf("\nindexes: %v\n",indexes)
-
+	//fmt.Printf("\nindexes: %v\n",indexes)
 
 	start = time.Now()
 	cmd = "SELECT DISTINCT word_id FROM words_tuples INDEXED BY idx2 WHERE tuple_id IN (" + strings.Join(indexes, ",") + ")"
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
 	indexes2 := make([]string,10000)
 	num3 := 0
@@ -383,12 +382,12 @@ func getMatch2(s string, path string) (string, int) {
 	}
 	indexes2 = indexes2[0:num3]
 	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
-	fmt.Printf("\nindexes: %v\n",indexes2)
+	//fmt.Printf("\nindexes: %v\n",indexes2)
 
 
 	start = time.Now()
 	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes2, ",") + ")"
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
 	if err != nil {
 		panic(err)
@@ -409,32 +408,9 @@ func getMatch2(s string, path string) (string, int) {
 	fmt.Printf("\nDatabase search 3 took %s \n", time.Since(start))
 	matches = matches[0:numm]
 
-/*
-	start = time.Now()
-	orStatement = "words_tuples.tuple_id = " + strings.Join(indexes, " or words_tuples.tuple_id = ")
-	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id WHERE " + orStatement
-	cmd = "SELECT distinct words.word FROM words indexed by idx3 JOIN words_tuples indexed by idx2 ON words_tuples.word_id = words.id AND words_tuples.tuple_id IN (" + strings.Join(indexes, ",") + ")"
-	fmt.Println(cmd)
-	rows, err = db.Query(cmd)
-	if err != nil {
-		panic(err)
-	}
-	for rows.Next() {
-		var word string
-		if err := rows.Scan(&word); err != nil {
-			panic(err)
-		}
-		//fmt.Printf("%s\n", word)
-		matches[numm] = word
-		numm++
-	}
-	if err := rows.Err(); err != nil {
-		panic(err)
-	}
 
-	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
-	matches = matches[0:numm]
-*/
+
+
 	findings_leven = make([]int, N)
 	findings_matches = make([]string, N)
 
