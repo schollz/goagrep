@@ -102,7 +102,7 @@ func generateHash2(path string) {
 	scanner.Split(bufio.ScanLines)
 
 	words := make(map[string]int)
-	tuples := make(map[string]int)
+	tuples := make(map[string]string)
 	numTuples := 0
 	numWords := 0
 
@@ -115,17 +115,23 @@ func generateHash2(path string) {
 		_, ok := words[s]
 		if ok == false {
 			words[s] = numWords
+
+
+			partials := getPartials(s)
+			for i := 0; i < len(partials); i++ {
+				_, ok := tuples[partials[i]]
+				if ok == false {
+					tuples[partials[i]] = strconv.Itoa(numWords)
+					numTuples++
+				} else {
+					tuples[partials[i]] += " " + strconv.Itoa(numWords)					
+				}
+			}
+
 			numWords++
 		}
 
-		partials := getPartials(s)
-		for i := 0; i < len(partials); i++ {
-			_, ok := tuples[partials[i]]
-			if ok == false {
-				tuples[partials[i]] = numTuples
-				numTuples++
-			}
-		}
+
 	}
 
 	cmd_start := `.echo OFF
@@ -138,9 +144,8 @@ PRAGMA temp_store = MEMORY;
 PRAGMA auto_vacuum = NONE;
 
 BEGIN;
-CREATE TABLE 'tuples' ('id' INTEGER PRIMARY KEY, 'tuple' VARCHAR(7) NOT NULL);
 CREATE TABLE 'words' ('id' INTEGER PRIMARY KEY,'word' VARCHAR(100) NOT NULL);
-CREATE TABLE 'words_tuples' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'word_id' INTEGER,'tuple_id' INTEGER);
+CREATE TABLE 'tuples' ('tuple' VARCHAR(7) PRIMARY KEY, 'word_ids' TEXT NOT NULL);
 COMMIT;
 
 BEGIN;`
@@ -148,20 +153,15 @@ BEGIN;`
 	cmd_end := `COMMIT;
 
 create index idx1 on tuples(tuple);
-create index idx2 on words_tuples(word_id,tuple_id);
 .exit
 `
 	fmt.Println(cmd_start)
 	for k, v := range words {
 		fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
-		partials := getPartials(k)
-		for i := 0; i < len(partials); i++ {
-			fmt.Printf("INSERT INTO words_tuples (word_id,tuple_id) values (%v,%v);\n", v, tuples[partials[i]])
-		}
 	}
 
 	for k, v := range tuples {
-		fmt.Printf("INSERT INTO tuples (id,tuple) values (%v,'%v');\n", v, k)
+		fmt.Printf("INSERT INTO tuples (tuple,word_ids) values ('%v','%v');\n", k, v)
 	}
 	fmt.Println(cmd_end)
 
@@ -364,12 +364,11 @@ func getMatch2(s string, path string) (string, int) {
 	start := time.Now()
 	orStatement := "tuple = '" + strings.Join(partials, "' or tuple = '") + "'"
 	cmd := "select id from tuples WHERE " + orStatement
-	cmd = "select id from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
+	cmd = "select word_ids from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
 
 	//fmt.Println(cmd)
 	rows, err := db.Query(cmd)
-	indexes := make([]string,10000)
-	num2 := 0
+	indexString := ""
 	if err != nil {
 		panic(err)
 	}
@@ -379,44 +378,34 @@ func getMatch2(s string, path string) (string, int) {
 			panic(err)
 		}
 		//fmt.Printf("%s\n", word)
-		indexes[num2] = word
-		num2++
+		indexString += word + " "
 	}
 	if err := rows.Err(); err != nil {
 		panic(err)
 	}
-	indexes = indexes[0:num2]
+	strIndexes := make([]int,10000)
+	ind := 0
+	for _,element := range strings.Split(indexString," ") {
+		theNum, _ := strconv.Atoi(element)
+		if theNum > 0 {
+strIndexes[ind] = theNum
+ind++
+}
+}
+	strIndexes = strIndexes[0:ind]
+	//fmt.Printf("strIndexes: %v\n",strIndexes)
+	strIndexes = removeDuplicates(strIndexes)
+	//fmt.Printf("strIndexes: %v\n",strIndexes)
+	indexes := make([]string,len(strIndexes))
+	for ind, value := range strIndexes {
+		indexes[ind] = strconv.Itoa(value)
+	}
 	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
 	//fmt.Printf("\nindexes: %v\n",indexes)
 
-	start = time.Now()
-	cmd = "SELECT DISTINCT word_id FROM words_tuples INDEXED BY idx2 WHERE tuple_id IN (" + strings.Join(indexes, ",") + ")"
-	//fmt.Println(cmd)
-	rows, err = db.Query(cmd)
-	indexes2 := make([]string,10000)
-	num3 := 0
-	if err != nil {
-		panic(err)
-	}
-	for rows.Next() {
-		var word string
-		if err := rows.Scan(&word); err != nil {
-			panic(err)
-		}
-		//fmt.Printf("%s\n", word)
-		indexes2[num3] = word
-		num3++
-	}
-	if err := rows.Err(); err != nil {
-		panic(err)
-	}
-	indexes2 = indexes2[0:num3]
-	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
-	//fmt.Printf("\nindexes: %v\n",indexes2)
-
 
 	start = time.Now()
-	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes2, ",") + ")"
+	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes, ",") + ")"
 	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
 	if err != nil {
@@ -435,7 +424,7 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 
-	fmt.Printf("\nDatabase search 3 took %s \n", time.Since(start))
+	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
 	matches = matches[0:numm]
 
 
