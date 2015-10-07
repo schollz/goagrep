@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
+	//"time"
 )
 
 //GLOBALS
@@ -357,7 +357,7 @@ func getMatch2(s string, path string) (string, int) {
 
 	//orStatment := "tuples.tuple like '" + strings.Join(partials, "' or tuples.tuple like '") + "'"
 	//cmd := "SELECT distinct words.word FROM  words_tuples LEFT JOIN words ON words_tuples.word_id = words.id LEFT JOIN tuples ON words_tuples.tuple_id = tuples.id WHERE " + orStatment
-	start := time.Now()
+	//start := time.Now()
 	orStatement := "tuple = '" + strings.Join(partials, "' or tuple = '") + "'"
 	cmd := "select id from tuples WHERE " + orStatement
 	cmd = "select word_ids from tuples indexed by idx1 WHERE tuple in ('" + strings.Join(partials, "','") + "')"
@@ -396,10 +396,10 @@ func getMatch2(s string, path string) (string, int) {
 	for ind, value := range strIndexes {
 		indexes[ind] = strconv.Itoa(value)
 	}
-	fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
+	//fmt.Printf("\nDatabase search 1 took %s \n", time.Since(start))
 	//fmt.Printf("\nindexes: %v\n",indexes)
 
-	start = time.Now()
+	//start = time.Now()
 	cmd = "SELECT word FROM words WHERE id IN (" + strings.Join(indexes, ",") + ")"
 	//fmt.Println(cmd)
 	rows, err = db.Query(cmd)
@@ -419,7 +419,7 @@ func getMatch2(s string, path string) (string, int) {
 		panic(err)
 	}
 
-	fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
+	//fmt.Printf("\nDatabase search 2 took %s \n", time.Since(start))
 	matches = matches[0:numm]
 
 	findings_leven = make([]int, N)
