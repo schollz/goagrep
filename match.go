@@ -5,15 +5,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/arbovm/levenshtein"
-	"github.com/cheggaaa/pb"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/arbovm/levenshtein"
+	"github.com/cheggaaa/pb"
+	_ "github.com/mattn/go-sqlite3"
 	//"time"
 )
 
@@ -493,7 +494,7 @@ func search(matches []string, target string, process int) {
 
 func main() {
 	dbPath = "./words.db"
-	tuple_length = 6
+	tuple_length = 3
 	file_tuple_length = 3
 	if strings.EqualFold(os.Args[1], "help") {
 		fmt.Printf("Version 1.2 - %v-mer tuples, removing commons\n", tuple_length)
