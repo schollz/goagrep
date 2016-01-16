@@ -1,44 +1,49 @@
-# go-string-matching
-Benchmarking (searching for 'madgascar' with a cache containing 3-letter tuples). Run 1000 times and taking average.
+# Go-String-Matching version 1.1
 
-Language   | Runtime | Memory                                | Filesize
----------- | ------- | ------------------------------------- | --------
-Python     | 21 ms   | Requires loading all data into memory | ?
-Go Sqlite3 | 6.2 ms  | ~20 MB                                | 124K
-Go BoltDB  | 2.8 ms  | ~14 MB                                | 512K
+# Benchmark
+
+Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz.
+
+Version   | Runtime | Memory | Filesize
+---------- | ------- | ------ | --------
+[Python](https://github.com/schollz/string_matching)     | 104 ms  | ~30 MB | 140K
+[Go Sqlite3](https://github.com/schollz/go-string-matching/tree/sqlite3) | 6.2 ms  | ~20 MB | 124K
+[Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master)  | 2.8 ms  | ~14 MB | 512K
+
+# Setup
+
+Install dependencies
+
+```bash
+go get github.com/arbovm/levenshtein
+go get github.com/boltdb/bolt
+```
+
+Build using
+
+```bash
+go build
+```
 
 # Run
-To use, you first must build a database of words:
+To use, you first must build a database of words (here using a tuple size of 3):
 
 ```
-wget http://www-personal.umich.edu/%7Ejlawler/wordlist
+$ ./go-string-matching* testlist newdb 3
+Finished building db
 ```
 
-And then build the word list
+And then you can match any of the words using:
 
 ```
-./match build wordlist | sqlite3 words.db
+$ ./go-string-matching* newdb "heroes"
+heroine|||3
 ```
 
-Then to run simply use
-
-```
-./match "madgascar"
-```
+which returns the best match and the levenshtein score.
 
 # To do
 - Make commmand line stuff with github.com/codegangsta/cli
 - ~Command line help~
 - ~Command line for generating cache~
 - ~Convert to lowercase for converting~
-
-## Scratch
-``` go build *.go rm test.db && time ./match build wordlist | sqlite3 test.db          1.734 time ./match 'test' test.db                             0.005
-
-go build _.go && time ./main builddb wordlist my.db 3    3min19s go build _.go && time ./main my.db "test"         0.009
-
-go test -bench=.
-
-BenchmarkPartials-8         1000           1664637 ns/op BenchmarkBoltDump-8     2000000000               0.02 ns/op BenchmarkMatch-8             500           2924633 ns/op
-
-``
