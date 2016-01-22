@@ -16,7 +16,7 @@ Version                                                                         
 [Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2 ms  | ~14 MB | 512K
 [agrep](https://en.wikipedia.org/wiki/Agrep) | 2 ms | ? | 0 (no precomputed database nessecary)
 
-So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It requires not database, its slightly faster then fuzzy match. However it has drawbacks - it is limited to 32 characters while this program is limited to 500. Also, `agrep` is limited to 8 errors, while this program has no limit on errors. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
+So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to BigFuzz. However, `agrep` has drawbacks - it is limited to 32 characters while this program is limited to 500. Also, `agrep` is limited to 8 errors, while this program has no limit on errors. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
 
 
 ## How does it work
