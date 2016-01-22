@@ -57,8 +57,6 @@ func getMatch(s string, path string) (string, int) {
 					v = b3.Get([]byte(string(partial)))
 				} else if string(partial[0]) <= "l" {
 					v = b4.Get([]byte(string(partial)))
-					log.Println(partial)
-					log.Println(v)
 				} else if string(partial[0]) <= "o" {
 					v = b5.Get([]byte(string(partial)))
 				} else if string(partial[0]) <= "r" {
