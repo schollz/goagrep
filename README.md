@@ -11,7 +11,8 @@ Version                                                                         
 [Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2.8 ms  | ~14 MB | 512K
 [agrep](https://en.wikipedia.org/wiki/Agrep) | 2.0 ms | ? | 0 (no precomputed database nessecary)
 
-So why not just use `agrep`? It seems that `agrep` really is the best choice for most applications. It requires not database, its even faster then fuzzy match. However it has drawbacks - it is limited to 32 characters (so long book titles or band names are out of the question) and its limited to a certain amount of errors (<8).
+So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It requires not database, its slightly faster then fuzzy match. However it has drawbacks - it is limited to 32 characters while this program is limited to 500. Also, `agrep` is limited to 8 errors, while this program has no limit on errors. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
+
 
 ## How does it work
 
@@ -19,7 +20,7 @@ This program splits search-words into smaller subsets, and then finds the corres
 
 The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter). 
 
-A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. Here are some benchmarks of searching for various words of different lengths:
+A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. Here are some benchmarks of searching for various words of different lengths: 
 
 ### Subset benchmarking
 
@@ -76,5 +77,6 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 - ~Command line help~
 - ~Command line for generating cache~
 - ~Convert to lowercase for converting~
+- ~Vastly increased DB building by decreasing size of partials (`make([]string, 500)`) and making extra buckets~
 - Handle case that word definetly does not exist
 - Save searches, so caching can be used to find common searches easily
