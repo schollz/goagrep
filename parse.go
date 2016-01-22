@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
+	"github.com/cheggaaa/pb"
 )
 
 func getPartials(s string, tupleLength int) []string {
@@ -123,22 +124,28 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 
 	// fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
+	bar2 := pb.StartNew(len(tuples))
 	db.Batch(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("words"))
 		for k, v := range words {
+			bar2.Increment()
 			b.Put([]byte(strconv.Itoa(v)), []byte(k))
 		}
 		return nil
 	})
+	bar2.FinishPrint("Finished words")
 
 	// fmt.Printf("inserting into bucket uples '%v':'%v');\n", k, v)
+	bar1 := pb.StartNew(len(tuples))
 	db.Batch(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("tuples"))
 		for k, v := range tuples {
+			bar1.Increment()
 			b.Put([]byte(k), []byte(v))
 		}
 		return nil
 	})
+	bar1.FinishPrint("Finished tuples")
 
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
