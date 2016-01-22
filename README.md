@@ -1,4 +1,9 @@
-# Go-String-Matching version 1.1
+# BigFuzz
+
+_A simple program to do fuzzy matching for strings of any length._
+
+![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
+
 I've written several apps that allow users to search a database for music artists, or book titles, or other lists of words. To make my life easy, I often use make the searched word a primary key in the database. However, this assumes (incorrectly) that a user spells their search word correctly and exactly how I have it in my database. To overcome this I wrote this [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program that simply takes any string, mispelled or not, and matches to one in my key list.
 
 # Benchmark
