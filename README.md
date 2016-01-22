@@ -2,13 +2,14 @@
 I've written several apps that allow users to search a database for music artists, or book titles, or other lists of words. To make my life easy, I often use make the searched word a primary key in the database. However, this assumes (incorrectly) that a user spells their search word correctly and exactly how I have it in my database. To overcome this I wrote this [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program that simply takes any string, mispelled or not, and matches to one in my key list.
 
 # Benchmark
-Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length.
+Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. `agrep` was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
 
 Version                                                                               | Runtime | Memory | Filesize
 ------------------------------------------------------------------------------------- | ------- | ------ | --------
 [Python](https://github.com/schollz/string_matching)                                  | 104 ms  | ~30 MB | 140K
 [Go Sqlite3](https://github.com/schollz/go-string-matching/tree/sqlite3)              | 6.2 ms  | ~20 MB | 124K
 [Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2.8 ms  | ~14 MB | 512K
+[agrep](https://en.wikipedia.org/wiki/Agrep) | 2.0 ms | ? | 11K (size of `testlist`)
 
 ## How does it work
 
