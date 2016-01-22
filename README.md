@@ -1,6 +1,6 @@
 # Go-String-Matching version 1.1
 # Benchmark
-Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words.
+Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length.
 
 Version                                                                               | Runtime | Memory | Filesize
 ------------------------------------------------------------------------------------- | ------- | ------ | --------
