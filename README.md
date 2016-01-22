@@ -75,3 +75,4 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 - ~Command line for generating cache~
 - ~Convert to lowercase for converting~
 - Handle case that word definetly does not exist
+- Save searches, so caching can be used to find common searches easily
