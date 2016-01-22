@@ -11,6 +11,8 @@ Version                                                                         
 [Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2.8 ms  | ~14 MB | 512K
 [agrep](https://en.wikipedia.org/wiki/Agrep) | 2.0 ms | ? | 11K (size of `testlist`)
 
+So why not just use `agrep`? It seems that `agrep` really is the best choice for most applications. It requires not database, its even faster then fuzzy match. However it has drawbacks - it is limited to 32 characters (so long book titles or band names are out of the question) and its limited to a certain amount of errors (<8).
+
 ## How does it work
 
 This program splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This *greatly* decreases the search space and thus increases the matching speed.
