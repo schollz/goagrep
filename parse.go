@@ -16,11 +16,12 @@ func getPartials(s string, tupleLength int) []string {
 	num := 0
 	s = strings.ToLower(s)
 	s = strings.Replace(s, "/", "", -1)
+	s = strings.Replace(s, " the ", "", -1)
+	s = strings.Replace(s, " by ", "", -1)
+	s = strings.Replace(s, " dr", "", -1)
+	s = strings.Replace(s, " of ", "", -1)
+	s = strings.Replace(s, " and ", "", -1)
 	s = strings.Replace(s, " ", "", -1)
-	s = strings.Replace(s, "the", "", -1)
-	s = strings.Replace(s, "by", "", -1)
-	s = strings.Replace(s, "dr", "", -1)
-	s = strings.Replace(s, "of", "", -1)
 	slen := len(s)
 	if slen <= tupleLength {
 		if slen <= 3 {
