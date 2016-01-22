@@ -27,7 +27,7 @@ Subset length | Runtime   | Filesize
 4      | 4 - 15 ms | 32MB
 5      | 3 - 9 ms  | 32MB
 
-These results show that you can get much faster speeds with shorter subset lengths, but keep in mind that this will not be able to match strings that have an error and are smaller than the subset length.
+These results show that you can get much faster speeds with shorter subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 # Setup
 Install dependencies
