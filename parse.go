@@ -7,13 +7,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/cheggaaa/pb"
 )
 
 func getPartials(s string, tupleLength int) []string {
-	partials := make([]string, 100000)
+	partials := make([]string, 500)
 	num := 0
 	s = strings.ToLower(s)
 	s = strings.Replace(s, "/", "", -1)
@@ -128,8 +129,65 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 	defer db.Close()
 
+
 	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples"))
+		_, err := tx.CreateBucket([]byte("tuples-1"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-2"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-3"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-4"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-5"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-6"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-7"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples-8"))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -165,18 +223,54 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 	bar2.FinishPrint("Finished words")
 
-	// fmt.Printf("inserting into bucket uples '%v':'%v');\n", k, v)
+	// fmt.Printf("inserting into bucket (tuple,words) '%v':'%v');\n", k, v)
 	fmt.Println("Loading subsets into db...")
+	start := time.Now()
 	bar1 := pb.StartNew(len(tuples))
+	bNums := []int{0,0,0,0,0,0,0,0}
 	db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("tuples"))
+		b1 := tx.Bucket([]byte("tuples-1"))
+		b2 := tx.Bucket([]byte("tuples-2"))
+		b3 := tx.Bucket([]byte("tuples-3"))
+		b4 := tx.Bucket([]byte("tuples-4"))
+		b5 := tx.Bucket([]byte("tuples-5"))
+		b6 := tx.Bucket([]byte("tuples-6"))
+		b7 := tx.Bucket([]byte("tuples-7"))
+		b8 := tx.Bucket([]byte("tuples-8"))
 		for k, v := range tuples {
 			bar1.Increment()
-			b.Put([]byte(k), []byte(v))
+			if string(k[0]) <= "c"  { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
+				b1.Put([]byte(k), []byte(v))
+				bNums[0] += 1
+			} else if string(k[0]) <= "f" {
+				b2.Put([]byte(k), []byte(v))
+				bNums[1] += 1
+			} else if string(k[0]) <= "i" {
+				b3.Put([]byte(k), []byte(v))
+				bNums[2] += 1
+			} else if string(k[0]) <= "l" {
+				b4.Put([]byte(k), []byte(v))
+				bNums[3] += 1
+			} else if string(k[0]) <= "o" {
+				b5.Put([]byte(k), []byte(v))
+				bNums[4] += 1
+			} else if string(k[0]) <= "r" {
+				b6.Put([]byte(k), []byte(v))
+				bNums[5] += 1
+			} else if string(k[0]) <= "u" {
+				b7.Put([]byte(k), []byte(v))
+				bNums[6] += 1
+			} else {
+				b8.Put([]byte(k), []byte(v))
+				bNums[7] += 1
+			}
 		}
 		return nil
 	})
 	bar1.FinishPrint("Finished tuples")
+	elapsed := time.Since(start)
+    fmt.Printf("Subsets took %s\n", elapsed)
+    fmt.Println(bNums)
 
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
