@@ -16,6 +16,8 @@ The subset length dictates how many pieces a word should be cut into, for purpos
 
 A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. Here are some benchmarks of searching for various words of different lengths:
 
+### Subset benchmarking
+
 Tested using 69,905 words and the version with BoltDB (1.1) and  Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz.
 
 Subset length | Runtime   | Filesize
@@ -24,6 +26,8 @@ Subset length | Runtime   | Filesize
 3      | 7 - 29 ms | 32MB
 4      | 4 - 15 ms | 32MB
 5      | 3 - 9 ms  | 32MB
+
+These results show that you can get much faster speeds with shorter subset lengths, but keep in mind that this will not be able to match strings that have an error and are smaller than the subset length.
 
 # Setup
 Install dependencies
