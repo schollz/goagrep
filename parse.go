@@ -43,7 +43,34 @@ func getPartials(s string, tupleLength int) []string {
 	return partials[0:num]
 }
 
+func lineCount(filepath string) (numLines int) {
+	// open a file
+	numLines = 0
+	if file, err := os.Open(filepath); err == nil {
+
+		// make sure it gets closed
+		defer file.Close()
+
+		// create a new scanner and read the file line by line
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			numLines = numLines + 1
+		}
+
+		// check for errors
+		if err = scanner.Err(); err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		log.Fatal(err)
+	}
+	return
+}
+
 func scanWords(wordpath string, path string, tupleLength int) (words map[string]int, tuples map[string]string) {
+
+	totalLines := lineCount(wordpath)
 
 	inFile, _ := os.Open(wordpath)
 	defer inFile.Close()
@@ -54,10 +81,11 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 	tuples = make(map[string]string)
 	numTuples := 0
 	numWords := 0
-
 	lineNum := 0
-
+	fmt.Println("Parsing subsets...")
+	bar := pb.StartNew(totalLines)
 	for scanner.Scan() {
+		bar.Increment()
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
 		s = strings.Replace(s, "'", "", -1)
@@ -81,6 +109,7 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 		}
 
 	}
+	bar.FinishPrint("Finished parsing subsets")
 	return
 }
 
@@ -124,7 +153,8 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 
 	// fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
-	bar2 := pb.StartNew(len(tuples))
+	fmt.Println("Loading words into db...")
+	bar2 := pb.StartNew(len(words))
 	db.Batch(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("words"))
 		for k, v := range words {
@@ -136,6 +166,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	bar2.FinishPrint("Finished words")
 
 	// fmt.Printf("inserting into bucket uples '%v':'%v');\n", k, v)
+	fmt.Println("Loading subsets into db...")
 	bar1 := pb.StartNew(len(tuples))
 	db.Batch(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("tuples"))
