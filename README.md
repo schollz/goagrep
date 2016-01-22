@@ -4,12 +4,12 @@ I've written several apps that allow users to search a database for music artist
 # Benchmark
 Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. `agrep` was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
 
-Version                                                                               | Runtime | Memory | Filesize
+Version                                                                               | Runtime | Memory | Database size
 ------------------------------------------------------------------------------------- | ------- | ------ | --------
 [Python](https://github.com/schollz/string_matching)                                  | 104 ms  | ~30 MB | 140K
 [Go Sqlite3](https://github.com/schollz/go-string-matching/tree/sqlite3)              | 6.2 ms  | ~20 MB | 124K
 [Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2.8 ms  | ~14 MB | 512K
-[agrep](https://en.wikipedia.org/wiki/Agrep) | 2.0 ms | ? | 11K (size of `testlist`)
+[agrep](https://en.wikipedia.org/wiki/Agrep) | 2.0 ms | ? | 0 (no precomputed database nessecary)
 
 So why not just use `agrep`? It seems that `agrep` really is the best choice for most applications. It requires not database, its even faster then fuzzy match. However it has drawbacks - it is limited to 32 characters (so long book titles or band names are out of the question) and its limited to a certain amount of errors (<8).
 
