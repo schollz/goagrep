@@ -5,36 +5,82 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/codegangsta/cli"
 )
 
 func main() {
-	if len(os.Args) == 4 {
-		tupleLength, _ := strconv.Atoi(os.Args[3])
-		generateDB(strings.ToLower(os.Args[1]), strings.ToLower(os.Args[2]), tupleLength)
-		fmt.Println("Finished building db")
-	} else if len(os.Args) == 3 {
-		word, score := getMatch(strings.ToLower(os.Args[2]), strings.ToLower(os.Args[1]))
-		fmt.Printf("%v|||%v", word, score)
-	} else {
-		fmt.Printf("Version 1.1\n\n")
-		fmt.Println(`Usage:
+	app := cli.NewApp()
+	app.Name = "go-string-matching"
+	app.Usage = "Program for fast fuzzy string matching."
+	app.Version = "1.2"
+	var wordlist, subsetSize, outputFile, searchWord string
 
-BUILDING THE DB:
-
-./go-string-matching wordlist newdb numTuples
-
-wordlist = a file with a list of words/phrases
-newdb = the output processed boltdb
-numTuples = number of tuples you want processed
-
-
-MATCHING A STRING:
-
-./go-string-matching newdb "string"
-
-newdb = the output processed boltdb
-"string" = what you want searched
-
-`)
+	app.Commands = []cli.Command{
+		{
+			Name:    "match",
+			Aliases: []string{"m"},
+			Usage:   "fuzzy match word",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "list, l",
+					Usage:       "wordlist to use",
+					Destination: &wordlist,
+				},
+				cli.StringFlag{
+					Name:        "word, w",
+					Usage:       "word to use",
+					Destination: &searchWord,
+				},
+			},
+			Action: func(c *cli.Context) {
+				if len(wordlist) == 0 || len(searchWord) == 0 {
+					cli.ShowCommandHelp(c, "match")
+				} else {
+					word, score := getMatch(strings.ToLower(searchWord), wordlist)
+					fmt.Printf("%v|||%v", word, score)
+				}
+			},
+		},
+		{
+			Name:    "build",
+			Aliases: []string{"b"},
+			Usage:   "builds the database subsequent fuzzy matching",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "list, l",
+					Usage:       "wordlist to use, seperated by newlines",
+					Destination: &wordlist,
+				},
+				cli.StringFlag{
+					Name:        "out, o",
+					Usage:       "file to output (default: words.db)",
+					Destination: &outputFile,
+				},
+				cli.StringFlag{
+					Name:        "size, s",
+					Usage:       "subset size (default: 3)",
+					Destination: &subsetSize,
+				},
+			},
+			Action: func(c *cli.Context) {
+				if len(subsetSize) == 0 {
+					subsetSize = "3"
+				}
+				if len(outputFile) == 0 {
+					outputFile = "words.db"
+				}
+				if len(wordlist) == 0 {
+					cli.ShowCommandHelp(c, "build")
+				} else {
+					fmt.Println("Generating '" + outputFile + "' from '" + wordlist + "' with subset size " + subsetSize)
+					tupleLength, _ := strconv.Atoi(subsetSize)
+					generateDB(wordlist, outputFile, tupleLength)
+					fmt.Println("Finished building db")
+				}
+			},
+		},
 	}
+
+	app.Run(os.Args)
 }
