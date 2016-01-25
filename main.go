@@ -23,8 +23,8 @@ func main() {
 			Usage:   "fuzzy match word",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:        "list, l",
-					Usage:       "wordlist to use",
+					Name:        "database, d",
+					Usage:       "input database name (built using 'fmbs build')",
 					Destination: &wordlist,
 				},
 				cli.StringFlag{
@@ -53,8 +53,8 @@ func main() {
 					Destination: &wordlist,
 				},
 				cli.StringFlag{
-					Name:        "out, o",
-					Usage:       "file to output (default: words.db)",
+					Name:        "database, d",
+					Usage:       "output database name (default: words.db)",
 					Destination: &outputFile,
 				},
 				cli.StringFlag{
