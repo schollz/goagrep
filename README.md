@@ -1,4 +1,4 @@
-# BigFuzz
+# fmbs - Fuzzy matching of big strings
 _A simple program to do fuzzy matching for strings of any length._
 
 ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
@@ -11,8 +11,8 @@ Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using I
 Version                                                                               | Runtime | Memory | Database size
 ------------------------------------------------------------------------------------- | ------- | ------ | -------------------------------------
 [Python](https://github.com/schollz/string_matching)                                  | 104 ms  | ~30 MB | 140K
-[Go Sqlite3](https://github.com/schollz/go-string-matching/tree/sqlite3)              | 6 ms    | ~20 MB | 124K
-[Go BoltDB (this version)](https://github.com/schollz/go-string-matching/tree/master) | 2 ms    | ~14 MB | 512K
+[Go Sqlite3](https://github.com/schollz/fmbs/tree/sqlite3)              | 6 ms    | ~20 MB | 124K
+[Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | ~14 MB | 512K
 [agrep](https://en.wikipedia.org/wiki/Agrep)                                          | 2 ms    | ?      | 0 (no precomputed database nessecary)
 
 So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to BigFuzz. However, `agrep` has drawbacks - it is limited to 32 characters while this program is limited to 500. Also, `agrep` is limited to 8 errors, while this program has no limit on errors. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
@@ -57,14 +57,14 @@ go build
 
 Install using
 ```bash
-go get github.com/schollz/go-string-matching
+go get github.com/schollz/fmbs
 ```
 
 # Run
 To use, you first must build a database of words (here using a subset size of 3):
 
 ```
-$ go-string-matching build -l testlist -o words.db
+$ fmbs build -l testlist -o words.db
 Generating 'words.db' from 'testlist' with subset size 3
 Parsing subsets...
 1000 / 1000 [=======================================================] 100.00 % 0
@@ -82,7 +82,7 @@ Finished building db
 And then you can match any of the words using:
 
 ```
-$ go-string-matching match -w pollester -l words.db
+$ fmbs match -w pollester -l words.db
 pollster|||1
 ```
 
@@ -95,7 +95,7 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 ```
 
 # To do
-- Make commmand line stuff with github.com/codegangsta/cli
+- ~Make commmand line stuff with github.com/codegangsta/cli~
 - ~Command line help~
 - ~Command line for generating cache~
 - ~Convert to lowercase for converting~

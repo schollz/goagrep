@@ -11,8 +11,8 @@ import (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "go-string-matching"
-	app.Usage = "Program for fast fuzzy string matching."
+	app.Name = "fmbs"
+	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (fmbs build help)."
 	app.Version = "1.2"
 	var wordlist, subsetSize, outputFile, searchWord string
 
