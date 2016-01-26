@@ -1,3 +1,5 @@
+![Version 1.2](https://img.shields.io/badge/version-1.2-brightgreen.svg?version=flat-square)
+
 # fmbs - Fuzzy matching of big strings
 _A simple program to do fuzzy matching for strings of any length._
 
