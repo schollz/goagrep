@@ -63,7 +63,7 @@ go get github.com/schollz/fmbs
 ```
 
 # Run
-To use, you first must build a database of words (here using a subset size of 3):
+First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `fmbs` database using:
 
 ```
 $ fmbs build -l testlist -o words.db
