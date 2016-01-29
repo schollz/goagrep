@@ -104,3 +104,4 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 - ~Vastly increased DB building by decreasing size of partials (`make([]string, 500)`) and making extra buckets~
 - Handle case that word definetly does not exist
 - Save searches, so caching can be used to find common searches easily
+- Use channels for faster searching?
