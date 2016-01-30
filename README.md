@@ -59,7 +59,7 @@ go build
 
 Install using
 ```bash
-go get github.com/schollz/fmbs
+go get -u github.com/schollz/fmbs
 ```
 
 # Run
