@@ -63,6 +63,32 @@ go get -u github.com/schollz/fmbs
 ```
 
 # Run
+
+## Basic Usage
+Building DB:
+
+```
+USAGE:
+   fmbs build [command options] [arguments...]
+
+OPTIONS:
+   --list, -l           wordlist to use, seperated by newlines
+   --database, -d       output database name (default: words.db)
+   --size, -s           subset size (default: 3)
+```
+
+Matching:
+
+```
+USAGE:
+   fmbs match [command options] [arguments...]
+
+OPTIONS:
+   --database, -d       input database name (built using 'fmbs build')
+   --word, -w           word to use
+```
+## Example
+
 First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `fmbs` database using:
 
 ```
