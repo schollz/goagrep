@@ -5,7 +5,7 @@
 <!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
  -->
 
-There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: _what happens if the user spells the primary key incorrectly?_ This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
+_There are situations where you want to take the user's input and match a primary key in a database. But, immediately a problem is introduced: what happens if the user spells the primary key incorrectly? This fuzzy string matching program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list._
 
 # About
 
@@ -126,5 +126,3 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 - Handle case that word definetly does not exist
 - Save searches, so caching can be used to find common searches easily
 - Use channels for faster searching?
-
-
