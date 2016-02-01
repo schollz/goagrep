@@ -5,7 +5,7 @@ _A simple program to do fuzzy matching for strings of any length._
 
 <!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
  -->
- 
+
 There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: _what happens if the user spells the primary key incorrectly?_ This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
 
 # About
@@ -16,7 +16,7 @@ It seems that `agrep` really a comparable choice for most applications. It does 
 
 1. `go-agrep` can search much longer strings: `agrep` is limited to 32 characters while `go-agrep` is only limited to 500. `tre-agrep` is not limited, but is much slower.
 2. `go-agrep` can handle many mistakes in a string: `agrep` is limited to edit distances of 8, while `go-agrep` has no limit.
-3. `go-agrep` is *fast* (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to y
+3. `go-agrep` is *fast* (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you
 
 ## Benchmarking
 Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks run with single word, and will flucuate ~50% from word to word.
@@ -28,7 +28,7 @@ Program                                             | Runtime  | Database size
 [go-agrep](https://github.com/schollz/go-agrep/tree/master) | 84 ms    | 58 MB (subset size = 3)
 [agrep](https://github.com/Wikinaut/agrep)          | 53 ms    | 3.5 MB (original file)
 [tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
-ou.
+
 
 # How does it work?
 `go-agrep` requires building a precomputed database from the file that has the target strings. Then, when querying, `go-agrep` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
