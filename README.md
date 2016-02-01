@@ -8,40 +8,29 @@ _A simple program to do fuzzy matching for strings of any length._
 There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: _what happens if the user spells the primary key incorrectly?_ This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
 
 # Benchmark
-Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. The current GNU standard, `agrep`, was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
+Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks run with single word, and will flucuate ~50% from word to word.
 
-Version                                                                 | Runtime | Memory | Database size
------------------------------------------------------------------------ | ------- | ------ | -------------------------------------
-[Python](https://github.com/schollz/string_matching)                    | 104 ms  | ~30 MB | 140K
-[Go Sqlite3](https://github.com/schollz/fmbs/tree/sqlite3)              | 6 ms    | ~20 MB | 124K
-[Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | <1 MB  | 256K
-[agrep](https://en.wikipedia.org/wiki/Agrep)                            | 2 ms    | <1 MB  | 0 (no precomputed database nessecary)
+Program                                             | Runtime  | Database size
+--------------------------------------------------- | -------- | -----------------------
+[fmbs](https://github.com/schollz/fmbs/tree/master) | **3 ms**     | 69 MB (subset size = 5)
+[fmbs](https://github.com/schollz/fmbs/tree/master) | 7 ms     | 66 MB (subset size = 4)
+[fmbs](https://github.com/schollz/fmbs/tree/master) | 84 ms    | 58 MB (subset size = 3)
+[agrep](https://github.com/Wikinaut/agrep)          | 53 ms    | 3.5 MB (original file)
+[tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
 
-## Why use `fmbs` over `agrep`?
+## Why use `fmbs`?
 It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, there are situations where `fmbs` is more useful:
 
-1. `fmbs` can search much longer strings: `agrep` is limited to 32 characters while `fmbs` is only limited to 500.
-2. `fmbs` can handle more mistakes in a string: `agrep` is limited to edit distances of 8, while `fmbs` has no limit.
-3. `fmbs` can be 3-10x faster: You can set higher subset lengths to get faster speeds than `agrep`. For example, in a list of 255,615 book names + authors, `agrep` took ~150 ms while `fmbs` took 8 - 40 ms (using a subset length of 5).
+1. `fmbs` can search much longer strings: `agrep` is limited to 32 characters while `fmbs` is only limited to 500. `tre-agrep` is not limited, but is much slower.
+2. `fmbs` can handle many mistakes in a string: `agrep` is limited to edit distances of 8, while `fmbs` has no limit.
+3. `fmbs` is fast, and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you.
 
 # How does it work
-This program splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This _greatly_ decreases the search space and thus increases the matching speed.
+`fmbs` requires building a precomputted database of the lines to search over. Then, when querying a word, `fmbs` splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This _greatly_ decreases the search space and thus increases the matching speed.
 
 The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
 
-A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. Here are some benchmarks of searching for various words of different lengths:
-
-### Subset benchmarking
-Tested using 69,905 words and the version with BoltDB (1.1) and  Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz.
-
-Subset length | Runtime     | Filesize
-------------- | ----------- | --------
-2             | 76 - 126 ms | 8MB
-3             | 7 - 29 ms   | 32MB
-4             | 4 - 15 ms   | 32MB
-5             | 3 - 9 ms    | 32MB
-
-These results show that you can get much faster speeds with shorter subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
+A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. You can get much faster speeds with longer subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 # Setup
 ## Build ...
