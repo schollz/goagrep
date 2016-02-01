@@ -49,30 +49,14 @@ func getMatch(s string, path string) (string, int) {
 			// defer wg.Done()
 			db.View(func(tx *bolt.Tx) error {
 				var v []byte
-				if string(partial[0]) <= "c" { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
-					b1 := tx.Bucket([]byte("tuples-1"))
-					v = b1.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "f" {
-					b2 := tx.Bucket([]byte("tuples-2"))
-					v = b2.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "i" {
-					b3 := tx.Bucket([]byte("tuples-3"))
-					v = b3.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "l" {
-					b4 := tx.Bucket([]byte("tuples-4"))
-					v = b4.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "o" {
-					b5 := tx.Bucket([]byte("tuples-5"))
-					v = b5.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "r" {
-					b6 := tx.Bucket([]byte("tuples-6"))
-					v = b6.Get([]byte(string(partial)))
-				} else if string(partial[0]) <= "u" {
-					b7 := tx.Bucket([]byte("tuples-7"))
-					v = b7.Get([]byte(string(partial)))
+
+				firstLetter := string(partial[0])
+				if strings.Contains(alphabet, firstLetter) {
+					b := tx.Bucket([]byte("tuples-" + firstLetter))
+					v = b.Get([]byte(string(partial)))
 				} else {
-					b8 := tx.Bucket([]byte("tuples-8"))
-					v = b8.Get([]byte(string(partial)))
+					b := tx.Bucket([]byte("tuples"))
+					v = b.Get([]byte(string(partial)))
 				}
 
 				vals := string(v)

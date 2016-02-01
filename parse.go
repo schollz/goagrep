@@ -130,14 +130,24 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 	defer db.Close()
 
-	for i := 1; i <= 8; i++ {
+	for i := 0; i < len(alphabet); i++ {
 		db.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucket([]byte("tuples-" + strconv.Itoa(i)))
+			_, err := tx.CreateBucket([]byte("tuples-" + string(alphabet[i])))
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
 			}
 			return nil
 		})
+	}
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("tuples"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	for i := 1; i <= 8; i++ {
 	}
 
 	for i := 0; i < wordBuckets; i++ {
@@ -179,42 +189,16 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	fmt.Println("Loading subsets into db...")
 	start = time.Now()
 	bar1 := pb.StartNew(len(tuples))
-	bNums := []int{0, 0, 0, 0, 0, 0, 0, 0}
 	db.Batch(func(tx *bolt.Tx) error {
-		b1 := tx.Bucket([]byte("tuples-1"))
-		b2 := tx.Bucket([]byte("tuples-2"))
-		b3 := tx.Bucket([]byte("tuples-3"))
-		b4 := tx.Bucket([]byte("tuples-4"))
-		b5 := tx.Bucket([]byte("tuples-5"))
-		b6 := tx.Bucket([]byte("tuples-6"))
-		b7 := tx.Bucket([]byte("tuples-7"))
-		b8 := tx.Bucket([]byte("tuples-8"))
 		for k, v := range tuples {
 			bar1.Increment()
-			if string(k[0]) <= "c" { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
-				b1.Put([]byte(k), []byte(v))
-				bNums[0]++
-			} else if string(k[0]) <= "f" {
-				b2.Put([]byte(k), []byte(v))
-				bNums[1]++
-			} else if string(k[0]) <= "i" {
-				b3.Put([]byte(k), []byte(v))
-				bNums[2]++
-			} else if string(k[0]) <= "l" {
-				b4.Put([]byte(k), []byte(v))
-				bNums[3]++
-			} else if string(k[0]) <= "o" {
-				b5.Put([]byte(k), []byte(v))
-				bNums[4]++
-			} else if string(k[0]) <= "r" {
-				b6.Put([]byte(k), []byte(v))
-				bNums[5]++
-			} else if string(k[0]) <= "u" {
-				b7.Put([]byte(k), []byte(v))
-				bNums[6]++
+			firstLetter := string(k[0])
+			if strings.Contains(alphabet, firstLetter) {
+				b := tx.Bucket([]byte("tuples-" + firstLetter))
+				b.Put([]byte(k), []byte(v))
 			} else {
-				b8.Put([]byte(k), []byte(v))
-				bNums[7]++
+				b := tx.Bucket([]byte("tuples"))
+				b.Put([]byte(k), []byte(v))
 			}
 		}
 		return nil

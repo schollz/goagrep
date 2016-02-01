@@ -5,17 +5,17 @@ _A simple program to do fuzzy matching for strings of any length._
 
 ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
 
-There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: *what happens if the user spells the primary key incorrectly?* This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
+There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: _what happens if the user spells the primary key incorrectly?_ This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
 
 # Benchmark
 Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. `agrep` was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
 
-Version                                                                               | Runtime | Memory | Database size
-------------------------------------------------------------------------------------- | ------- | ------ | -------------------------------------
-[Python](https://github.com/schollz/string_matching)                                  | 104 ms  | ~30 MB | 140K
+Version                                                                 | Runtime | Memory | Database size
+----------------------------------------------------------------------- | ------- | ------ | -------------------------------------
+[Python](https://github.com/schollz/string_matching)                    | 104 ms  | ~30 MB | 140K
 [Go Sqlite3](https://github.com/schollz/fmbs/tree/sqlite3)              | 6 ms    | ~20 MB | 124K
-[Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | ~14 MB | 512K
-[agrep](https://en.wikipedia.org/wiki/Agrep)                                          | 2 ms    | ?      | 0 (no precomputed database nessecary)
+[Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | <1 MB  | 256K
+[agrep](https://en.wikipedia.org/wiki/Agrep)                            | 2 ms    | <1 MB  | 0 (no precomputed database nessecary)
 
 So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, `agrep` has drawbacks - it is limited to 32 characters while this program is only limited to 500. Also, `agrep` is limited to edit distances of 8, while this program has no limit. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
 
@@ -39,7 +39,6 @@ Subset length | Runtime     | Filesize
 These results show that you can get much faster speeds with shorter subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 # Setup
-
 ## Build ...
 Install dependencies
 
@@ -56,14 +55,13 @@ go build
 ```
 
 ## ... or Install
-
 Install using
+
 ```bash
 go get -u github.com/schollz/fmbs
 ```
 
 # Run
-
 ## Basic Usage
 Building DB:
 
@@ -87,8 +85,8 @@ OPTIONS:
    --database, -d       input database name (built using 'fmbs build')
    --word, -w           word to use
 ```
-## Example
 
+## Example
 First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `fmbs` database using:
 
 ```
