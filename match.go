@@ -23,11 +23,19 @@ func getMatch(s string, path string) (string, int) {
 	defer db.Close()
 
 	tupleLength := 3
+	wordBuckets := -1
 
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
 		v := b.Get([]byte("tupleLength"))
 		tupleLength, _ = strconv.Atoi(string(v))
+		return nil
+	})
+
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("vars"))
+		v := b.Get([]byte("wordBuckets"))
+		wordBuckets, _ = strconv.Atoi(string(v))
 		return nil
 	})
 
@@ -75,7 +83,7 @@ func getMatch(s string, path string) (string, int) {
 					for _, k := range strings.Split(vals, " ") {
 						db.View(func(tx *bolt.Tx) error {
 							knum, _ := strconv.Atoi(k)
-							b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(knum), 10)))))
+							b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(knum), float64(wordBuckets))))))
 							v := string(b.Get([]byte(k)))
 							_, ok := matches[v]
 							if ok != true {

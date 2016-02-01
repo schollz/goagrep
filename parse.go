@@ -116,6 +116,7 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 }
 
 func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, tupleLength int) {
+	wordBuckets := int(len(words) / 300)
 
 	if _, err := os.Stat(path); err == nil {
 		os.Remove(path)
@@ -129,78 +130,17 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 	defer db.Close()
 
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-1"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
+	for i := 1; i <= 8; i++ {
+		db.Update(func(tx *bolt.Tx) error {
+			_, err := tx.CreateBucket([]byte("tuples-" + strconv.Itoa(i)))
+			if err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
+			return nil
+		})
+	}
 
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-2"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-3"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-4"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-5"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-6"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-7"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("tuples-8"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("words"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < wordBuckets; i++ {
 		db.Update(func(tx *bolt.Tx) error {
 			_, err := tx.CreateBucket([]byte("words-" + strconv.Itoa(i)))
 			if err != nil {
@@ -226,7 +166,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		for k, v := range words {
 			bar2.Increment()
 			if len(k) > 0 {
-				b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(v), 10)))))
+				b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(v), float64(wordBuckets))))))
 				b.Put([]byte(strconv.Itoa(v)), []byte(k))
 			}
 		}
@@ -285,6 +225,12 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
 		err := b.Put([]byte("tupleLength"), []byte(strconv.Itoa(tupleLength)))
+		return err
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("vars"))
+		err := b.Put([]byte("wordBuckets"), []byte(strconv.Itoa(wordBuckets)))
 		return err
 	})
 }
