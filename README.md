@@ -26,7 +26,7 @@ It seems that `agrep` really a comparable choice for most applications. It does 
 3. `fmbs` is fast, and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you.
 
 # How does it work
-`fmbs` requires building a precomputted database of the lines to search over. Then, when querying a word, `fmbs` splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This _greatly_ decreases the search space and thus increases the matching speed.
+`fmbs` requires building a precomputed database from the file that has the target strings. Then, when querying, `fmbs` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
 
 The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
 
