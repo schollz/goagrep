@@ -13,8 +13,8 @@ var alphabet string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "fmbs"
-	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (fmbs build help)."
+	app.Name = "go-agrep"
+	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
 	app.Version = "1.24"
 	alphabet = "abcdefghijklmnopqrstuvwxyz-"
 	var wordlist, subsetSize, outputFile, searchWord string
@@ -27,7 +27,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:        "database, d",
-					Usage:       "input database name (built using 'fmbs build')",
+					Usage:       "input database name (built using 'go-agrep build')",
 					Destination: &wordlist,
 				},
 				cli.StringFlag{

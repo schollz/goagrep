@@ -1,6 +1,6 @@
 ![Version 1.2](https://img.shields.io/badge/version-1.2-brightgreen.svg?version=flat-square)
 
-# fmbs - Fuzzy matching of big strings
+# go-agrep - Fuzzy matching of big strings
 _A simple program to do fuzzy matching for strings of any length._
 
 ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
@@ -12,21 +12,21 @@ Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wo
 
 Program                                             | Runtime  | Database size
 --------------------------------------------------- | -------- | -----------------------
-[fmbs](https://github.com/schollz/fmbs/tree/master) | **3 ms**     | 69 MB (subset size = 5)
-[fmbs](https://github.com/schollz/fmbs/tree/master) | 7 ms     | 66 MB (subset size = 4)
-[fmbs](https://github.com/schollz/fmbs/tree/master) | 84 ms    | 58 MB (subset size = 3)
+[go-agrep](https://github.com/schollz/go-agrep/tree/master) | **3 ms**     | 69 MB (subset size = 5)
+[go-agrep](https://github.com/schollz/go-agrep/tree/master) | 7 ms     | 66 MB (subset size = 4)
+[go-agrep](https://github.com/schollz/go-agrep/tree/master) | 84 ms    | 58 MB (subset size = 3)
 [agrep](https://github.com/Wikinaut/agrep)          | 53 ms    | 3.5 MB (original file)
 [tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
 
-## Why use `fmbs`?
-It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, there are situations where `fmbs` is more useful:
+## Why use `go-agrep`?
+It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `go-agrep`. However, there are situations where `go-agrep` is more useful:
 
-1. `fmbs` can search much longer strings: `agrep` is limited to 32 characters while `fmbs` is only limited to 500. `tre-agrep` is not limited, but is much slower.
-2. `fmbs` can handle many mistakes in a string: `agrep` is limited to edit distances of 8, while `fmbs` has no limit.
-3. `fmbs` is fast, and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you.
+1. `go-agrep` can search much longer strings: `agrep` is limited to 32 characters while `go-agrep` is only limited to 500. `tre-agrep` is not limited, but is much slower.
+2. `go-agrep` can handle many mistakes in a string: `agrep` is limited to edit distances of 8, while `go-agrep` has no limit.
+3. `go-agrep` is fast, and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you.
 
 # How does it work
-`fmbs` requires building a precomputed database from the file that has the target strings. Then, when querying, `fmbs` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
+`go-agrep` requires building a precomputed database from the file that has the target strings. Then, when querying, `go-agrep` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
 
 The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
 
@@ -52,7 +52,7 @@ go build
 Install using
 
 ```bash
-go get -u github.com/schollz/fmbs
+go get -u github.com/schollz/go-agrep
 ```
 
 # Run
@@ -61,7 +61,7 @@ Building DB:
 
 ```
 USAGE:
-   fmbs build [command options] [arguments...]
+   go-agrep build [command options] [arguments...]
 
 OPTIONS:
    --list, -l           wordlist to use, seperated by newlines
@@ -73,18 +73,18 @@ Matching:
 
 ```
 USAGE:
-   fmbs match [command options] [arguments...]
+   go-agrep match [command options] [arguments...]
 
 OPTIONS:
-   --database, -d       input database name (built using 'fmbs build')
+   --database, -d       input database name (built using 'go-agrep build')
    --word, -w           word to use
 ```
 
 ## Example
-First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `fmbs` database using:
+First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `go-agrep` database using:
 
 ```
-$ fmbs build -l testlist -d words.db
+$ go-agrep build -l testlist -d words.db
 Generating 'words.db' from 'testlist' with subset size 3
 Parsing subsets...
 1000 / 1000  100.00 % 0
@@ -101,7 +101,7 @@ Finished building db
 And then you can match any of the words using:
 
 ```
-$ fmbs match -w heroint -d words.db
+$ go-agrep match -w heroint -d words.db
 heroine|||1
 ```
 
