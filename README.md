@@ -10,6 +10,11 @@ There are situations where you want to take the user's input and match a primary
 
 # About
 
+`go-agrep` requires building a precomputed database from the file that has the target strings. Then, when querying, `go-agrep` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
+
+The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
+
+A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. You can get much faster speeds with longer subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 ## Why use `go-agrep`?
 It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `go-agrep`. However, there are situations where `go-agrep` is more useful:
@@ -30,12 +35,6 @@ Program                                             | Runtime  | Database size
 [tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
 
 
-# How does it work?
-`go-agrep` requires building a precomputed database from the file that has the target strings. Then, when querying, `go-agrep` splits the search string into smaller subsets, and then finds the corresponding known target strings that contain each subset. It then runs Levenshtein's algorithm on the new list of target strings to find the best match to the search string. This _greatly_ decreases the search space and thus increases the matching speed.
-
-The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
-
-A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. You can get much faster speeds with longer subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 # Installation
 
