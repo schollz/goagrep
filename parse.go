@@ -211,6 +211,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 
 	// fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
 	fmt.Println("Loading words into db...")
+	start := time.Now()
 	bar2 := pb.StartNew(len(words))
 	db.Batch(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("words"))
@@ -220,11 +221,12 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		}
 		return nil
 	})
-	bar2.FinishPrint("Finished words")
+	elapsed := time.Since(start)
+	bar2.FinishPrint("Words took " + elapsed.String())
 
 	// fmt.Printf("inserting into bucket (tuple,words) '%v':'%v');\n", k, v)
 	fmt.Println("Loading subsets into db...")
-	start := time.Now()
+	start = time.Now()
 	bar1 := pb.StartNew(len(tuples))
 	bNums := []int{0, 0, 0, 0, 0, 0, 0, 0}
 	db.Batch(func(tx *bolt.Tx) error {
@@ -266,9 +268,8 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		}
 		return nil
 	})
-	bar1.FinishPrint("Finished tuples")
-	elapsed := time.Since(start)
-	fmt.Printf("Subsets took %s\n", elapsed)
+	elapsed = time.Since(start)
+	bar1.FinishPrint("Subsets took " + elapsed.String())
 
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
