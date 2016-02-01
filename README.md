@@ -24,7 +24,7 @@ It seems that `agrep` really a comparable choice for most applications. It does 
 3. `go-agrep` is *fast* (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you
 
 ## Benchmarking
-Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks run with single word, and will flucuate ~50% from word to word.
+Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks were run with a single word, and can flucuate ~50% depending on the word.
 
 Program                                             | Runtime  | Database size
 --------------------------------------------------- | -------- | -----------------------
