@@ -116,7 +116,10 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 }
 
 func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, tupleLength int) {
-	wordBuckets := int(len(words) / 300)
+	wordBuckets := int(len(words) / 600)
+	if wordBuckets < 10 {
+		wordBuckets = 10
+	}
 
 	if _, err := os.Stat(path); err == nil {
 		os.Remove(path)
