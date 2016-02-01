@@ -1,6 +1,6 @@
 ![Version 1.2](https://img.shields.io/badge/version-1.2-brightgreen.svg?version=flat-square)
 
-# go-agrep - fast fuzzy matching through precomputation
+# go-agrep
 
 <!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
  -->
