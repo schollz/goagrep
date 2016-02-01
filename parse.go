@@ -202,6 +202,70 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 
 	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-1"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-2"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-3"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-4"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-5"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-6"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-7"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("words-8"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("vars"))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
@@ -214,10 +278,36 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	start := time.Now()
 	bar2 := pb.StartNew(len(words))
 	db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("words"))
+		b1 := tx.Bucket([]byte("words-1"))
+		b2 := tx.Bucket([]byte("words-2"))
+		b3 := tx.Bucket([]byte("words-3"))
+		b4 := tx.Bucket([]byte("words-4"))
+		b5 := tx.Bucket([]byte("words-5"))
+		b6 := tx.Bucket([]byte("words-6"))
+		b7 := tx.Bucket([]byte("words-7"))
+		b8 := tx.Bucket([]byte("words-8"))
 		for k, v := range words {
 			bar2.Increment()
-			b.Put([]byte(strconv.Itoa(v)), []byte(k))
+			if len(k) > 0 {
+				if string(k[0]) <= "c" { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
+					b1.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "f" {
+					b2.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "i" {
+					b3.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "l" {
+					b4.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "o" {
+					b5.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "r" {
+					b6.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else if string(k[0]) <= "u" {
+					b7.Put([]byte(strconv.Itoa(v)), []byte(k))
+				} else {
+					b8.Put([]byte(strconv.Itoa(v)), []byte(k))
+				}
+				//b.Put([]byte(strconv.Itoa(v)), []byte(k))
+			}
 		}
 		return nil
 	})
