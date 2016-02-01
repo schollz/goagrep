@@ -5,7 +5,7 @@ _A simple program to do fuzzy matching for strings of any length._
 
 ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
 
-I've written several apps that allow users to search a database for music artists, or book titles, or other lists of words. To make my life easy, I often use make the searched word a primary key in the database. However, this assumes (incorrectly) that a user spells their search word correctly and exactly how I have it in my database. To overcome this I wrote this [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program that simply takes any string, mispelled or not, and matches to one in my key list.
+There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: *what happens if the user spells the primary key incorrectly?* This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
 
 # Benchmark
 Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. `agrep` was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
@@ -17,7 +17,7 @@ Version                                                                         
 [Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | ~14 MB | 512K
 [agrep](https://en.wikipedia.org/wiki/Agrep)                                          | 2 ms    | ?      | 0 (no precomputed database nessecary)
 
-So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to BigFuzz. However, `agrep` has drawbacks - it is limited to 32 characters while this program is limited to 500. Also, `agrep` is limited to 8 errors, while this program has no limit on errors. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
+So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, `agrep` has drawbacks - it is limited to 32 characters while this program is only limited to 500. Also, `agrep` is limited to edit distances of 8, while this program has no limit. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
 
 ## How does it work
 This program splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This _greatly_ decreases the search space and thus increases the matching speed.
@@ -92,25 +92,24 @@ OPTIONS:
 First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `fmbs` database using:
 
 ```
-$ fmbs build -l testlist -o words.db
+$ fmbs build -l testlist -d words.db
 Generating 'words.db' from 'testlist' with subset size 3
 Parsing subsets...
-1000 / 1000 [=======================================================] 100.00 % 0
+1000 / 1000  100.00 % 0
 Finished parsing subsets
 Loading words into db...
-1000 / 1000 [=======================================================] 100.00 % 0
-Finished words
+1000 / 1000  100.00 % 0
+Words took 13.0398ms
 Loading subsets into db...
-2281 / 2281 [=======================================================] 100.00 % 0
-Finished tuples
-Subsets took 28.30249ms
+2281 / 2281  100.00 % 0
+Subsets took 19.0267ms
 Finished building db
 ```
 
 And then you can match any of the words using:
 
 ```
-$ fmbs match -w pollester -l words.db
+$ fmbs match -w pollester -d words.db
 pollster|||1
 ```
 
