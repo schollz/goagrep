@@ -19,6 +19,7 @@ Version                                                                 | Runtim
 
 ## Why use `fmbs` over `agrep`?
 It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, there are situations where `fmbs` is more useful:
+
 1. `fmbs` can search much longer strings: `agrep` is limited to 32 characters while `fmbs` is only limited to 500.
 2. `fmbs` can handle more mistakes in a string: `agrep` is limited to edit distances of 8, while `fmbs` has no limit.
 3. `fmbs` can be 3-10x faster: You can set higher subset lengths to get faster speeds than `agrep`. For example, in a list of 255,615 book names + authors, `agrep` took ~150 ms while `fmbs` took 8 - 40 ms (using a subset length of 5).
