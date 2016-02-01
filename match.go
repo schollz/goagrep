@@ -39,7 +39,6 @@ func getMatch(s string, path string) (string, int) {
 		func(partial string, path string) {
 			// defer wg.Done()
 			db.View(func(tx *bolt.Tx) error {
-
 				var v []byte
 				if string(partial[0]) <= "c" { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
 					b1 := tx.Bucket([]byte("tuples-1"))
@@ -71,46 +70,25 @@ func getMatch(s string, path string) (string, int) {
 				// log.Println(partial)
 				// log.Printf("The answer is: %v\n", vals)
 				if len(v) > 0 {
+					gotZero := false
 					for _, k := range strings.Split(vals, " ") {
 						db.View(func(tx *bolt.Tx) error {
-							var v1 []byte
-							if string(k[0]) <= "c" { // DIVIDED 6x: 32MB 84 ms...UNDIVIDED: 188ms
-								b1 := tx.Bucket([]byte("words-1"))
-								v1 = b1.Get([]byte(k))
-							} else if string(k[0]) <= "f" {
-								b2 := tx.Bucket([]byte("words-2"))
-								v1 = b2.Get([]byte(k))
-							} else if string(k[0]) <= "i" {
-								b3 := tx.Bucket([]byte("words-3"))
-								v1 = b3.Get([]byte(k))
-							} else if string(k[0]) <= "l" {
-								b4 := tx.Bucket([]byte("words-4"))
-								v1 = b4.Get([]byte(k))
-							} else if string(k[0]) <= "o" {
-								b5 := tx.Bucket([]byte("words-5"))
-								v1 = b5.Get([]byte(k))
-							} else if string(k[0]) <= "r" {
-								b6 := tx.Bucket([]byte("words-6"))
-								v1 = b6.Get([]byte(k))
-							} else if string(k[0]) <= "u" {
-								b7 := tx.Bucket([]byte("words-7"))
-								v1 = b7.Get([]byte(k))
-							} else {
-								b8 := tx.Bucket([]byte("words-8"))
-								v1 = b8.Get([]byte(k))
-							}
-							v := string(v1)
-
-							// v := string(b.Get([]byte(k)))
-							// b := tx.Bucket([]byte("words"))
+							b := tx.Bucket([]byte("words"))
+							v := string(b.Get([]byte(k)))
 							_, ok := matches[v]
 							if ok != true {
 								matches[v] = levenshtein.Distance(s, v)
 								// fmt.Printf("Word match: %v\n", v)
 								// fmt.Printf("Distance : %v\n", matches[v])
+								if matches[v] == 0 {
+									gotZero = true
+								}
 							}
 							return nil
 						})
+						if gotZero {
+							break
+						}
 					}
 				}
 				return nil
