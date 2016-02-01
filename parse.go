@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -116,10 +117,9 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 
 func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, tupleLength int) {
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err == nil {
-			os.Remove(path)
-		}
+	if _, err := os.Stat(path); err == nil {
+		os.Remove(path)
+		fmt.Println("Removed old " + path)
 	}
 
 	// Open a new bolt database
@@ -200,6 +200,15 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		}
 		return nil
 	})
+	for i := 0; i < 10; i++ {
+		db.Update(func(tx *bolt.Tx) error {
+			_, err := tx.CreateBucket([]byte("words-" + strconv.Itoa(i)))
+			if err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
+			return nil
+		})
+	}
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("vars"))
@@ -214,10 +223,10 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	start := time.Now()
 	bar2 := pb.StartNew(len(words))
 	db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("words"))
 		for k, v := range words {
 			bar2.Increment()
 			if len(k) > 0 {
+				b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(v), 10)))))
 				b.Put([]byte(strconv.Itoa(v)), []byte(k))
 			}
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"strconv"
 	"strings"
 
@@ -73,7 +74,8 @@ func getMatch(s string, path string) (string, int) {
 					gotZero := false
 					for _, k := range strings.Split(vals, " ") {
 						db.View(func(tx *bolt.Tx) error {
-							b := tx.Bucket([]byte("words"))
+							knum, _ := strconv.Atoi(k)
+							b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(knum), 10)))))
 							v := string(b.Get([]byte(k)))
 							_, ok := matches[v]
 							if ok != true {
