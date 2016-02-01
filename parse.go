@@ -130,6 +130,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 	defer db.Close()
 
+	fmt.Println("Creating subset buckets...")
 	for i := 0; i < len(alphabet); i++ {
 		db.Update(func(tx *bolt.Tx) error {
 			_, err := tx.CreateBucket([]byte("tuples-" + string(alphabet[i])))
@@ -147,9 +148,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		return nil
 	})
 
-	for i := 1; i <= 8; i++ {
-	}
-
+	fmt.Println("Creating words buckets...")
 	for i := 0; i < wordBuckets; i++ {
 		db.Update(func(tx *bolt.Tx) error {
 			_, err := tx.CreateBucket([]byte("words-" + strconv.Itoa(i)))

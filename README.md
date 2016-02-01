@@ -8,7 +8,7 @@ _A simple program to do fuzzy matching for strings of any length._
 There are situations where you want to take the user's input and match a primary key in a database (for example, I ran into this in my web apps for finding [music artists](http://www.musicsuggestions.ninja/), and [book titles](http://booksuggestions.ninja/)). But, immediately a problem is introduced: _what happens if the user spells the primary key incorrectly?_ This [fuzzy string matching](https://en.wikipedia.org/wiki/Approximate_string_matching) program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list.
 
 # Benchmark
-Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. `agrep` was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
+Benchmarking using the 1000-word `testlist`, run with `go test -bench=.` using Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz. The Python benchmark was run using the same words and the same subset length. The current GNU standard, `agrep`, was benchmarked using [perf](http://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool/306683): `perf stat -r 500 -d agrep -By "heroint" testlist`.
 
 Version                                                                 | Runtime | Memory | Database size
 ----------------------------------------------------------------------- | ------- | ------ | -------------------------------------
@@ -17,9 +17,13 @@ Version                                                                 | Runtim
 [Go BoltDB (this version)](https://github.com/schollz/fmbs/tree/master) | 2 ms    | <1 MB  | 256K
 [agrep](https://en.wikipedia.org/wiki/Agrep)                            | 2 ms    | <1 MB  | 0 (no precomputed database nessecary)
 
-So why not just use `agrep`? It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, `agrep` has drawbacks - it is limited to 32 characters while this program is only limited to 500. Also, `agrep` is limited to edit distances of 8, while this program has no limit. This difference is really seen when comparing a big database: in a list of 255,615 book names + authors, `agrep` took ~150 ms while this program took 8 - 40 ms.
+## Why use `fmbs` over `agrep`?
+It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `fmbs`. However, there are situations where `fmbs` is more useful:
+1. `fmbs` can search much longer strings: `agrep` is limited to 32 characters while `fmbs` is only limited to 500.
+2. `fmbs` can handle more mistakes in a string: `agrep` is limited to edit distances of 8, while `fmbs` has no limit.
+3. `fmbs` can be 3-10x faster: You can set higher subset lengths to get faster speeds than `agrep`. For example, in a list of 255,615 book names + authors, `agrep` took ~150 ms while `fmbs` took 8 - 40 ms (using a subset length of 5).
 
-## How does it work
+# How does it work
 This program splits search-words into smaller subsets, and then finds the corresponding known words that contain each subset. It then runs Levenshtein's algorithm on the new list of known words to find the best match to the search-word. This _greatly_ decreases the search space and thus increases the matching speed.
 
 The subset length dictates how many pieces a word should be cut into, for purposes of finding partial matches for mispelled words. For instance example: a subset length of 3 for the word "olive" would index "oli", "liv", and "ive". This way, if one searched for "oliv" you could still return "olive" since subsets "oli" and "liv" can still grab the whole word and check its Levenshtein distance (which should be very close as its only missing the one letter).
@@ -107,8 +111,8 @@ Finished building db
 And then you can match any of the words using:
 
 ```
-$ fmbs match -w pollester -d words.db
-pollster|||1
+$ fmbs match -w heroint -d words.db
+heroine|||1
 ```
 
 which returns the best match and the levenshtein score.
@@ -120,11 +124,11 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 ```
 
 # To do
-- ~Make commmand line stuff with github.com/codegangsta/cli~
-- ~Command line help~
-- ~Command line for generating cache~
-- ~Convert to lowercase for converting~
-- ~Vastly increased DB building by decreasing size of partials (`make([]string, 500)`) and making extra buckets~
+- ~~Make commmand line stuff with github.com/codegangsta/cli~~
+- ~~Command line help~~
+- ~~Command line for generating cache~~
+- ~~Convert to lowercase for converting~~
+- ~~Vastly increased DB building by decreasing size of partials (`make([]string, 500)`) and making extra buckets~~
 - Handle case that word definetly does not exist
 - Save searches, so caching can be used to find common searches easily
 - Use channels for faster searching?
