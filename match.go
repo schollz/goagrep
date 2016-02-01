@@ -51,8 +51,9 @@ func getMatch(s string, path string) (string, int) {
 				var v []byte
 
 				firstLetter := string(partial[0])
-				if strings.Contains(alphabet, firstLetter) {
-					b := tx.Bucket([]byte("tuples-" + firstLetter))
+				secondLetter := string(partial[1])
+				if strings.Contains(alphabet, firstLetter) && strings.Contains(alphabet, secondLetter) {
+					b := tx.Bucket([]byte("tuples-" + firstLetter + secondLetter))
 					v = b.Get([]byte(string(partial)))
 				} else {
 					b := tx.Bucket([]byte("tuples"))

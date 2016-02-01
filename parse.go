@@ -132,13 +132,15 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 
 	fmt.Println("Creating subset buckets...")
 	for i := 0; i < len(alphabet); i++ {
-		db.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucket([]byte("tuples-" + string(alphabet[i])))
-			if err != nil {
-				return fmt.Errorf("create bucket: %s", err)
-			}
-			return nil
-		})
+		for j := 0; j < len(alphabet); j++ {
+			db.Update(func(tx *bolt.Tx) error {
+				_, err := tx.CreateBucket([]byte("tuples-" + string(alphabet[i]) + string(alphabet[j])))
+				if err != nil {
+					return fmt.Errorf("create bucket: %s", err)
+				}
+				return nil
+			})
+		}
 	}
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("tuples"))
@@ -192,8 +194,9 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		for k, v := range tuples {
 			bar1.Increment()
 			firstLetter := string(k[0])
-			if strings.Contains(alphabet, firstLetter) {
-				b := tx.Bucket([]byte("tuples-" + firstLetter))
+			secondLetter := string(k[1])
+			if strings.Contains(alphabet, firstLetter) && strings.Contains(alphabet, secondLetter) {
+				b := tx.Bucket([]byte("tuples-" + firstLetter + secondLetter))
 				b.Put([]byte(k), []byte(v))
 			} else {
 				b := tx.Bucket([]byte("tuples"))
