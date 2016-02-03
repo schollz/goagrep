@@ -226,6 +226,12 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 
 // GenerateDB generates the database with precomputed strings for later searching.
 // It is required to you generate a database before you use the GetMatch() function.
+//
+// stringListPath is the filename of the list of strings you want to use
+//
+// databasePath is the filename of the database that is outputed
+//
+// tupleLength is the length of the subsets you want to use
 func GenerateDB(stringListPath string, databasePath string, tupleLength int) {
 
 	words, tuples := scanWords(stringListPath, databasePath, tupleLength)
