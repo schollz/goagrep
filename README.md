@@ -1,4 +1,4 @@
-![Version 1.2](https://img.shields.io/badge/version-1.2-brightgreen.svg?version=flat-square)
+![Version 1.2](https://img.shields.io/badge/version-1.2-brightgreen.svg?version=flat-square) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
 # goagrep
 
