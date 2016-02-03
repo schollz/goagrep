@@ -42,6 +42,7 @@ func getPartials(s string, tupleLength int) []string {
 			num = num + 1
 		}
 	}
+	//fmt.Println(s, partials[0:num])
 	return partials[0:num]
 }
 
@@ -120,6 +121,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	if wordBuckets < 10 {
 		wordBuckets = 10
 	}
+	fmt.Printf("Creating %v word buckets\n", wordBuckets)
 
 	if _, err := os.Stat(path); err == nil {
 		os.Remove(path)
@@ -134,17 +136,28 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	defer db.Close()
 
 	fmt.Println("Creating subset buckets...")
-	for i := 0; i < len(alphabet); i++ {
-		for j := 0; j < len(alphabet); j++ {
-			db.Update(func(tx *bolt.Tx) error {
-				_, err := tx.CreateBucket([]byte("tuples-" + string(alphabet[i]) + string(alphabet[j])))
+	bar3 := pb.StartNew(len(tuples))
+	start := time.Now()
+	err = db.Batch(func(tx *bolt.Tx) error {
+		for k := range tuples {
+			bar3.Increment()
+			firstLetter := string(k[0])
+			secondLetter := string(k[1])
+			if strings.Contains(alphabet, firstLetter) && strings.Contains(alphabet, secondLetter) {
+				_, err := tx.CreateBucketIfNotExists([]byte("tuples-" + firstLetter + secondLetter))
 				if err != nil {
 					return fmt.Errorf("create bucket: %s", err)
 				}
-				return nil
-			})
+			}
 		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
+	elapsed := time.Since(start)
+	bar3.FinishPrint("Creating subset buckets took " + elapsed.String())
+
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("tuples"))
 		if err != nil {
@@ -154,15 +167,15 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 
 	fmt.Println("Creating words buckets...")
-	for i := 0; i < wordBuckets; i++ {
-		db.Update(func(tx *bolt.Tx) error {
+	db.Batch(func(tx *bolt.Tx) error {
+		for i := 0; i < wordBuckets; i++ {
 			_, err := tx.CreateBucket([]byte("words-" + strconv.Itoa(i)))
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
 			}
-			return nil
-		})
-	}
+		}
+		return nil
+	})
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("vars"))
@@ -174,9 +187,9 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 
 	// fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
 	fmt.Println("Loading words into db...")
-	start := time.Now()
+	start = time.Now()
 	bar2 := pb.StartNew(len(words))
-	db.Batch(func(tx *bolt.Tx) error {
+	err = db.Batch(func(tx *bolt.Tx) error {
 		for k, v := range words {
 			bar2.Increment()
 			if len(k) > 0 {
@@ -186,14 +199,17 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		}
 		return nil
 	})
-	elapsed := time.Since(start)
+	if err != nil {
+		log.Fatal(err)
+	}
+	elapsed = time.Since(start)
 	bar2.FinishPrint("Words took " + elapsed.String())
 
 	// fmt.Printf("inserting into bucket (tuple,words) '%v':'%v');\n", k, v)
 	fmt.Println("Loading subsets into db...")
 	start = time.Now()
 	bar1 := pb.StartNew(len(tuples))
-	db.Batch(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		for k, v := range tuples {
 			bar1.Increment()
 			firstLetter := string(k[0])
@@ -208,6 +224,9 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		}
 		return nil
 	})
+	if err != nil {
+		log.Fatal(err) // BUG(schollz): There is an error in Windows for huge dictionaries that "file resize error: truncate words.db: The requested operation cannot be performed on a file with a user-mapped section open.""
+	}
 	elapsed = time.Since(start)
 	bar1.FinishPrint("Subsets took " + elapsed.String())
 
