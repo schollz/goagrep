@@ -2,6 +2,8 @@
 
 # go-agrep
 
+_NOTE: Currently this is a program, but please let me know if there is interest in making this a library [here](https://github.com/schollz/go-agrep/issues/4)._
+
 <!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
  -->
 
