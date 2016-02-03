@@ -1,4 +1,4 @@
-package main
+package goagrep
 
 import "testing"
 
@@ -20,7 +20,7 @@ func BenchmarkBoltDump(b *testing.B) {
 
 func BenchmarkMatch(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		getMatch("heroint", path)
+		GetMatch("heroint", path)
 	}
 }
 
@@ -29,7 +29,7 @@ func BenchmarkMatch(b *testing.B) {
 // }
 
 func init() {
-	wordpath = "testlist"
+	wordpath = "../example/testlist"
 	path = "testlist.db"
 	tupleLength = 3
 	words, tuples = scanWords(wordpath, path, tupleLength)

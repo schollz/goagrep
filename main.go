@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/schollz/goagrep/goagrep"
 )
 
 var alphabet string
@@ -15,7 +16,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "go-agrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.24"
+	app.Version = "1.25"
 	alphabet = "abcdefghijklmnopqrstuvwxyz-"
 	var wordlist, subsetSize, outputFile, searchWord string
 
@@ -40,7 +41,7 @@ func main() {
 				if len(wordlist) == 0 || len(searchWord) == 0 {
 					cli.ShowCommandHelp(c, "match")
 				} else {
-					word, score := getMatch(strings.ToLower(searchWord), wordlist)
+					word, score := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
 					fmt.Printf("%v|||%v", word, score)
 				}
 			},
@@ -78,7 +79,7 @@ func main() {
 				} else {
 					fmt.Println("Generating '" + outputFile + "' from '" + wordlist + "' with subset size " + subsetSize)
 					tupleLength, _ := strconv.Atoi(subsetSize)
-					generateDB(wordlist, outputFile, tupleLength)
+					goagrep.GenerateDB(wordlist, outputFile, tupleLength)
 					fmt.Println("Finished building db")
 				}
 			},

@@ -1,4 +1,4 @@
-package main
+package goagrep
 
 import (
 	"bufio"
@@ -223,7 +223,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		return err
 	})
 }
-func generateDB(wordpath string, path string, tupleLength int) {
+func GenerateDB(wordpath string, path string, tupleLength int) {
 
 	words, tuples := scanWords(wordpath, path, tupleLength)
 	dumpToBoltDB(path, words, tuples, tupleLength)

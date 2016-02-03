@@ -1,4 +1,4 @@
-package main
+package goagrep
 
 import (
 	"log"
@@ -12,7 +12,7 @@ import (
 
 var matches map[string]int
 
-func getMatch(s string, path string) (string, int) {
+func GetMatch(s string, path string) (string, int) {
 	// normalize
 	s = strings.ToLower(s)
 	// Open a new bolt database

@@ -1,9 +1,15 @@
-package main
+package goagrep
 
 import (
 	"bytes"
 	"io"
 )
+
+var alphabet string
+
+func init() {
+	alphabet = "abcdefghijklmnopqrstuvwxyz-"
+}
 
 func removeDuplicates(a []int) []int {
 	result := []int{}
