@@ -16,10 +16,10 @@ The subset length dictates how many pieces a word should be cut into, for purpos
 A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. You can get much faster speeds with longer subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 ## Why use `go-agrep`?
-It seems that `agrep` really a comparable choice for most applications. It does not require any database and its comparable speed to `go-agrep`. However, there are situations where `go-agrep` is more useful:
+It seems that [`agrep`](https://github.com/Wikinaut/agrep)  really a comparable choice for most applications. It does not require any database and its comparable speed to `go-agrep`. However, there are situations where `go-agrep` is more useful:
 
-1. `go-agrep` can search much longer strings: `agrep` is limited to 32 characters while `go-agrep` is only limited to 500. `tre-agrep` is not limited, but is much slower.
-2. `go-agrep` can handle many mistakes in a string: `agrep` is limited to edit distances of 8, while `go-agrep` has no limit.
+1. `go-agrep` can search much longer strings: [`agrep`](https://github.com/Wikinaut/agrep)  is limited to 32 characters while `go-agrep` is only limited to 500. [`tre-agrep`](http://laurikari.net/tre/download/)  is not limited, but is much slower.
+2. `go-agrep` can handle many mistakes in a string: [`agrep`](https://github.com/Wikinaut/agrep)  is limited to edit distances of 8, while `go-agrep` has no limit.
 3. `go-agrep` is *fast* (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you
 
 ## Benchmarking
