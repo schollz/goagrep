@@ -126,3 +126,4 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 - Handle case that word definetly does not exist
 - Save searches, so caching can be used to find common searches easily
 - Use channels for faster searching?
+- Add in `agrep` options
