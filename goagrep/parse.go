@@ -223,9 +223,12 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		return err
 	})
 }
-func GenerateDB(wordpath string, path string, tupleLength int) {
 
-	words, tuples := scanWords(wordpath, path, tupleLength)
-	dumpToBoltDB(path, words, tuples, tupleLength)
+// GenerateDB generates the database with precomputed strings for later searching.
+// It is required to you generate a database before you use the GetMatch() function.
+func GenerateDB(stringListPath string, databasePath string, tupleLength int) {
+
+	words, tuples := scanWords(stringListPath, databasePath, tupleLength)
+	dumpToBoltDB(databasePath, words, tuples, tupleLength)
 
 }

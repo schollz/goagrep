@@ -12,6 +12,8 @@ import (
 
 var matches map[string]int
 
+// GetMatch searches in the specified goagrep database, path, for the closest match to the string, s.
+// It returns the closest matched string and the Levenshtein distance.
 func GetMatch(s string, path string) (string, int) {
 	// normalize
 	s = strings.ToLower(s)
