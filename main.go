@@ -14,9 +14,9 @@ var alphabet string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "go-agrep"
+	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.25"
+	app.Version = "1.26"
 	alphabet = "abcdefghijklmnopqrstuvwxyz-"
 	var wordlist, subsetSize, outputFile, searchWord string
 

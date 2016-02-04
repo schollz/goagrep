@@ -129,7 +129,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 
 	// Open a new bolt database
-	db, err := bolt.Open(path, 0600, nil)
+	db, err := bolt.Open(path, 0600, &bolt.Options{NoGrowSync: false})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -225,7 +225,7 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err) // BUG(schollz): There is an error in Windows for huge dictionaries that "file resize error: truncate words.db: The requested operation cannot be performed on a file with a user-mapped section open.""
+		log.Fatal(err) // BUG(schollz): Windows file resize error: https://github.com/schollz/goagrep/issues/6
 	}
 	elapsed = time.Since(start)
 	bar1.FinishPrint("Subsets took " + elapsed.String())
