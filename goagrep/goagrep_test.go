@@ -27,8 +27,8 @@ func BenchmarkMatch(b *testing.B) {
 
 func Example1() {
 	_, _, pairlist := GetMatch("heroint", path)
-	fmt.Println(pairlist[1])
-	// Output: {agoing 4}
+	fmt.Println(pairlist[0])
+	// Output: {heroine 1}
 }
 
 // func BenchmarkDB(b *testing.B) {
