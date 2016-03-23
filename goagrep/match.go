@@ -3,6 +3,7 @@ package goagrep
 import (
 	"log"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -18,7 +19,7 @@ var matches map[string]int
 // s is the string you want to search
 //
 // path is the filename of the database generated with GenerateDB()
-func GetMatch(s string, path string) (string, int) {
+func GetMatch(s string, path string) (string, int, PairList) {
 	// normalize
 	s = strings.ToLower(s)
 	// Open a new bolt database
@@ -108,5 +109,32 @@ func GetMatch(s string, path string) (string, int) {
 
 	}
 
-	return bestMatch, bestVal
+	// Return at most 100 of the pairs
+	pairlist := rankByWordCount(matches)
+	if len(pairlist) > 100 {
+		pairlist = pairlist[0:99]
+	}
+	return bestMatch, bestVal, pairlist
 }
+
+func rankByWordCount(wordFrequencies map[string]int) PairList {
+	pl := make(PairList, len(wordFrequencies))
+	i := 0
+	for k, v := range wordFrequencies {
+		pl[i] = Pair{k, v}
+		i++
+	}
+	sort.Sort(sort.Reverse(pl))
+	return pl
+}
+
+type Pair struct {
+	Key   string
+	Value int
+}
+
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Value > p[j].Value }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }

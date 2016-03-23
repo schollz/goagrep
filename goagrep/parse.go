@@ -14,6 +14,12 @@ import (
 	"github.com/cheggaaa/pb"
 )
 
+var VERBOSE bool
+
+func init() {
+	VERBOSE = true
+}
+
 func getPartials(s string, tupleLength int) []string {
 	partials := make([]string, 500)
 	num := 0
@@ -85,10 +91,15 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 	numTuples := 0
 	numWords := 0
 	lineNum := 0
-	fmt.Println("Parsing subsets...")
-	bar := pb.StartNew(totalLines)
+	var bar *pb.ProgressBar
+	if VERBOSE {
+		fmt.Println("Parsing subsets...")
+		bar = pb.StartNew(totalLines)
+	}
 	for scanner.Scan() {
-		bar.Increment()
+		if VERBOSE {
+			bar.Increment()
+		}
 		lineNum++
 		s := strings.Replace(scanner.Text(), "/", "", -1)
 		s = strings.Replace(s, "'", "", -1)
@@ -112,7 +123,9 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 		}
 
 	}
-	bar.FinishPrint("Finished parsing subsets")
+	if VERBOSE {
+		bar.FinishPrint("Finished parsing subsets")
+	}
 	return
 }
 
@@ -121,11 +134,15 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	if wordBuckets < 10 {
 		wordBuckets = 10
 	}
-	fmt.Printf("Creating %v word buckets\n", wordBuckets)
+	if VERBOSE {
+		fmt.Printf("Creating %v word buckets\n", wordBuckets)
+	}
 
 	if _, err := os.Stat(path); err == nil {
 		os.Remove(path)
-		fmt.Println("Removed old " + path)
+		if VERBOSE {
+			fmt.Println("Removed old " + path)
+		}
 	}
 
 	// Open a new bolt database

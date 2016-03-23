@@ -1,6 +1,7 @@
 package goagrep
 
 import "testing"
+import "fmt"
 
 var words map[string]int
 var tuples map[string]string
@@ -24,11 +25,18 @@ func BenchmarkMatch(b *testing.B) {
 	}
 }
 
+func Example1() {
+	_, _, pairlist := GetMatch("heroint", path)
+	fmt.Println(pairlist[1])
+	// Output: {agoing 4}
+}
+
 // func BenchmarkDB(b *testing.B) {
 // 	generateDB("testlist", "gotests.db", 3)
 // }
 
 func init() {
+	VERBOSE = false
 	wordpath = "../example/testlist"
 	path = "testlist.db"
 	tupleLength = 3
