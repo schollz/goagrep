@@ -101,8 +101,9 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 			bar.Increment()
 		}
 		lineNum++
-		s := strings.Replace(scanner.Text(), "/", "", -1)
-		s = strings.Replace(s, "'", "", -1)
+		// s := strings.Replace(scanner.Text(), "/", "", -1)
+		// s = strings.Replace(s, "'", "", -1)
+		s := strings.TrimSpace(scanner.Text())
 
 		_, ok := words[s]
 		if ok == false {
