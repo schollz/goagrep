@@ -31,6 +31,12 @@ func Example1() {
 	// Output: {heroine 1}
 }
 
+func Example2() {
+	_, _, pairlist := GetMatch("zack's barn", path)
+	fmt.Println(pairlist[0])
+	// Output: {zack's barn 0}
+}
+
 // func BenchmarkDB(b *testing.B) {
 // 	generateDB("testlist", "gotests.db", 3)
 // }
