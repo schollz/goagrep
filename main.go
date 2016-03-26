@@ -14,7 +14,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.26"
+	app.Version = "1.3"
 	var wordlist, subsetSize, outputFile, searchWord string
 
 	app.Commands = []cli.Command{
