@@ -10,14 +10,11 @@ import (
 	"github.com/schollz/goagrep/goagrep"
 )
 
-var alphabet string
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
 	app.Version = "1.26"
-	alphabet = "abcdefghijklmnopqrstuvwxyz-"
 	var wordlist, subsetSize, outputFile, searchWord string
 
 	app.Commands = []cli.Command{
@@ -41,8 +38,12 @@ func main() {
 				if len(wordlist) == 0 || len(searchWord) == 0 {
 					cli.ShowCommandHelp(c, "match")
 				} else {
-					word, score := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
-					fmt.Printf("%v|||%v", word, score)
+					word, score, _, err := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
+					if err != nil {
+						fmt.Printf("Not found|||-1")
+					} else {
+						fmt.Printf("%v|||%v", word, score)
+					}
 				}
 			},
 		},

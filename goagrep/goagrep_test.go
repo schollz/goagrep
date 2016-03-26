@@ -26,15 +26,23 @@ func BenchmarkMatch(b *testing.B) {
 }
 
 func Example1() {
-	_, _, pairlist := GetMatch("heroint", path)
+	_, _, pairlist, _ := GetMatch("heroint", path)
 	fmt.Println(pairlist[0])
 	// Output: {heroine 1}
 }
 
 func Example2() {
-	_, _, pairlist := GetMatch("zack's barn", path)
+	_, _, pairlist, _ := GetMatch("zack's barn", path)
 	fmt.Println(pairlist[0])
 	// Output: {zack's barn 0}
+}
+
+func Example3() {
+	_, _, _, err := GetMatch("zzzz zzzzzz", path)
+	if err != nil {
+		fmt.Println("got error")
+	}
+	// Output: got error
 }
 
 // func BenchmarkDB(b *testing.B) {
@@ -45,7 +53,7 @@ func init() {
 	VERBOSE = false
 	wordpath = "../example/testlist"
 	path = "testlist.db"
-	tupleLength = 3
+	tupleLength = 4
 	words, tuples = scanWords(wordpath, path, tupleLength)
 	dumpToBoltDB(path, words, tuples, tupleLength)
 }

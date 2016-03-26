@@ -1,6 +1,7 @@
 package goagrep
 
 import (
+	"errors"
 	"log"
 	"math"
 	"sort"
@@ -19,9 +20,12 @@ var matches map[string]int
 // s is the string you want to search
 //
 // path is the filename of the database generated with GenerateDB()
-func GetMatch(s string, path string) (string, int, PairList) {
+func GetMatch(s string, path string) (string, int, PairList, error) {
+	var returnError error
+	returnError = nil
 	// normalize
 	s = strings.ToLower(s)
+
 	// Open a new bolt database
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
@@ -99,7 +103,7 @@ func GetMatch(s string, path string) (string, int, PairList) {
 	}
 
 	// wg.Wait()
-	bestMatch := "none"
+	bestMatch := "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj"
 	bestVal := 100
 	for k, v := range matches {
 		if v < bestVal {
@@ -110,11 +114,18 @@ func GetMatch(s string, path string) (string, int, PairList) {
 	}
 
 	// Return at most 100 of the pairs
-	pairlist := rankByWordCount(matches)
-	if len(pairlist) > 100 {
-		pairlist = pairlist[0:99]
+	var pairlist PairList
+	if bestMatch != "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj" {
+		pairlist = rankByWordCount(matches)
+		if len(pairlist) > 100 {
+			pairlist = pairlist[0:99]
+		}
+
+	} else {
+		returnError = errors.New("No matches")
 	}
-	return bestMatch, bestVal, pairlist
+
+	return bestMatch, bestVal, pairlist, returnError
 }
 
 func rankByWordCount(wordFrequencies map[string]int) PairList {
