@@ -128,7 +128,7 @@ func main() {
 	// Find word
 	databaseFile := "words.db"
 	searchWord := "heroint"
-	word, score := goagrep.GetMatch(searchWord, databaseFile)
+	word, score, _, _ := goagrep.GetMatch(searchWord, databaseFile)
 	fmt.Println(word, score)
 }
 ```
