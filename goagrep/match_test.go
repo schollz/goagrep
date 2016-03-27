@@ -45,6 +45,12 @@ func Example4() {
 	// Output: [] [] No matches
 }
 
+func Example5() {
+	matches, err := findMatches("cambium", "testlist4.db")
+	fmt.Println(len(matches), err)
+	// Output: 3 <nil>
+}
+
 func BenchmarkPartialsTuple3(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		getPartials("alligator", 3)

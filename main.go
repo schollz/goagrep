@@ -14,9 +14,9 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.3"
+	app.Version = "1.4"
 	var wordlist, subsetSize, outputFile, searchWord string
-
+	var verbose bool
 	app.Commands = []cli.Command{
 		{
 			Name:    "match",
@@ -38,7 +38,7 @@ func main() {
 				if len(wordlist) == 0 || len(searchWord) == 0 {
 					cli.ShowCommandHelp(c, "match")
 				} else {
-					word, score, _, err := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
+					word, score, err := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
 					if err != nil {
 						fmt.Printf("Not found|||-1")
 					} else {
@@ -66,6 +66,11 @@ func main() {
 					Name:        "size, s",
 					Usage:       "subset size (default: 3)",
 					Destination: &subsetSize,
+				},
+				cli.BoolFlag{
+					Name:        "verbose",
+					Usage:       "Show more output",
+					Destination: &verbose,
 				},
 			},
 			Action: func(c *cli.Context) {
