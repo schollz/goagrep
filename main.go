@@ -85,7 +85,7 @@ func main() {
 				} else {
 					fmt.Println("Generating '" + outputFile + "' from '" + wordlist + "' with subset size " + subsetSize)
 					tupleLength, _ := strconv.Atoi(subsetSize)
-					goagrep.GenerateDB(wordlist, outputFile, tupleLength)
+					goagrep.GenerateDB(wordlist, outputFile, tupleLength, verbose)
 					fmt.Println("Finished building db")
 				}
 			},
