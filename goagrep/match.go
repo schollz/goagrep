@@ -12,16 +12,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-var matches map[string]int
-
-// GetMatch searches in the specified goagrep database.
-// It returns the closest matched string and the Levenshtein distance.
-//
-// s is the string you want to search
-//
-// path is the filename of the database generated with GenerateDB()
-func GetMatch(s string, path string) (string, int, PairList, error) {
-	var returnError error
+func findMatches(s string, path string) (matches map[string]int, returnError error) {
 	returnError = nil
 	// normalize
 	s = strings.ToLower(s)
@@ -51,7 +42,7 @@ func GetMatch(s string, path string) (string, int, PairList, error) {
 	})
 
 	partials := getPartials(s, tupleLength)
-	matches := make(map[string]int)
+	matches = make(map[string]int)
 	// var wg sync.WaitGroup
 
 	for _, partial := range partials {
@@ -101,31 +92,52 @@ func GetMatch(s string, path string) (string, int, PairList, error) {
 			})
 		}(partial, path)
 	}
+	return
+}
 
-	// wg.Wait()
+// GetMatch searches in the specified goagrep database.
+// It returns the closest matched string and the Levenshtein distance.
+//
+// s is the string you want to search
+//
+// path is the filename of the database generated with GenerateDB()
+func GetMatch(s string, path string) (string, int, error) {
+	matches, returnError := findMatches(s, path)
 	bestMatch := "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj"
-	bestVal := 100
+	bestVal := 1000
 	for k, v := range matches {
 		if v < bestVal {
 			bestMatch = k
 			bestVal = v
 		}
-
 	}
+	return bestMatch, bestVal, returnError
+}
 
-	// Return at most 100 of the pairs
+// GetMatches searches in the specified goagrep database.
+// Returns the a list of the at most 100 words and scores in order.
+//
+// s is the string you want to search
+//
+// path is the filename of the database generated with GenerateDB()
+func GetMatches(s string, path string) ([]string, []int, error) {
+	matches, returnError := findMatches(s, path)
+	matchWords := []string{}
+	matchScores := []int{}
 	var pairlist PairList
-	if bestMatch != "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj" {
+	if len(matches) > 0 {
 		pairlist = rankByWordCount(matches)
 		if len(pairlist) > 100 {
 			pairlist = pairlist[0:99]
 		}
-
+		for i := range pairlist {
+			matchWords = append(matchWords, pairlist[i].Key)
+			matchScores = append(matchScores, pairlist[i].Value)
+		}
 	} else {
 		returnError = errors.New("No matches")
 	}
-
-	return bestMatch, bestVal, pairlist, returnError
+	return matchWords, matchScores, returnError
 }
 
 func rankByWordCount(wordFrequencies map[string]int) PairList {
@@ -139,11 +151,13 @@ func rankByWordCount(wordFrequencies map[string]int) PairList {
 	return pl
 }
 
+// Pair structure for sorting
 type Pair struct {
 	Key   string
 	Value int
 }
 
+// PairList array structure for sorting
 type PairList []Pair
 
 func (p PairList) Len() int           { return len(p) }

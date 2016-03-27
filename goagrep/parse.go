@@ -14,10 +14,11 @@ import (
 	"github.com/cheggaaa/pb"
 )
 
+// VERBOSE is a flag to turn on/off status information during parsing
 var VERBOSE bool
 
 func init() {
-	VERBOSE = true
+	VERBOSE = false
 }
 
 func getPartials(s string, tupleLength int) []string {
@@ -131,6 +132,8 @@ func scanWords(wordpath string, path string, tupleLength int) (words map[string]
 }
 
 func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, tupleLength int) {
+	var bar *pb.ProgressBar
+	var start time.Time
 	wordBuckets := int(len(words) / 600)
 	if wordBuckets < 10 {
 		wordBuckets = 10
@@ -153,12 +156,16 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	}
 	defer db.Close()
 
-	fmt.Println("Creating subset buckets...")
-	bar3 := pb.StartNew(len(tuples))
-	start := time.Now()
+	if VERBOSE {
+		fmt.Println("Creating subset buckets...")
+		bar = pb.StartNew(len(tuples))
+		start = time.Now()
+	}
 	err = db.Batch(func(tx *bolt.Tx) error {
 		for k := range tuples {
-			bar3.Increment()
+			if VERBOSE {
+				bar.Increment()
+			}
 			firstLetter := string(k[0])
 			secondLetter := string(k[1])
 			if strings.Contains(alphabet, firstLetter) && strings.Contains(alphabet, secondLetter) {
@@ -173,8 +180,10 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	if err != nil {
 		log.Fatal(err)
 	}
-	elapsed := time.Since(start)
-	bar3.FinishPrint("Creating subset buckets took " + elapsed.String())
+	if VERBOSE {
+		elapsed := time.Since(start)
+		bar.FinishPrint("Creating subset buckets took " + elapsed.String())
+	}
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("tuples"))
@@ -184,7 +193,9 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 		return nil
 	})
 
-	fmt.Println("Creating words buckets...")
+	if VERBOSE {
+		fmt.Println("Creating words buckets...")
+	}
 	db.Batch(func(tx *bolt.Tx) error {
 		for i := 0; i < wordBuckets; i++ {
 			_, err := tx.CreateBucket([]byte("words-" + strconv.Itoa(i)))
@@ -204,12 +215,16 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	})
 
 	// fmt.Printf("INSERT INTO words (id,word) values (%v,'%v');\n", v, k)
-	fmt.Println("Loading words into db...")
-	start = time.Now()
-	bar2 := pb.StartNew(len(words))
+	if VERBOSE {
+		fmt.Println("Loading words into db...")
+		start = time.Now()
+		bar = pb.StartNew(len(words))
+	}
 	err = db.Batch(func(tx *bolt.Tx) error {
 		for k, v := range words {
-			bar2.Increment()
+			if VERBOSE {
+				bar.Increment()
+			}
 			if len(k) > 0 {
 				b := tx.Bucket([]byte("words-" + strconv.Itoa(int(math.Mod(float64(v), float64(wordBuckets))))))
 				b.Put([]byte(strconv.Itoa(v)), []byte(k))
@@ -220,16 +235,21 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	if err != nil {
 		log.Fatal(err)
 	}
-	elapsed = time.Since(start)
-	bar2.FinishPrint("Words took " + elapsed.String())
+	if VERBOSE {
+		elapsed := time.Since(start)
+		bar.FinishPrint("Words took " + elapsed.String())
+	}
 
-	// fmt.Printf("inserting into bucket (tuple,words) '%v':'%v');\n", k, v)
-	fmt.Println("Loading subsets into db...")
-	start = time.Now()
-	bar1 := pb.StartNew(len(tuples))
+	if VERBOSE {
+		fmt.Println("Loading subsets into db...")
+		start = time.Now()
+		bar = pb.StartNew(len(tuples))
+	}
 	err = db.Update(func(tx *bolt.Tx) error {
 		for k, v := range tuples {
-			bar1.Increment()
+			if VERBOSE {
+				bar.Increment()
+			}
 			firstLetter := string(k[0])
 			secondLetter := string(k[1])
 			if strings.Contains(alphabet, firstLetter) && strings.Contains(alphabet, secondLetter) {
@@ -245,8 +265,10 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 	if err != nil {
 		log.Fatal(err) // BUG(schollz): Windows file resize error: https://github.com/schollz/goagrep/issues/6
 	}
-	elapsed = time.Since(start)
-	bar1.FinishPrint("Subsets took " + elapsed.String())
+	if VERBOSE {
+		elapsed := time.Since(start)
+		bar.FinishPrint("Subsets took " + elapsed.String())
+	}
 
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("vars"))
