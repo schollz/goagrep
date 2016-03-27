@@ -14,9 +14,9 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.4"
+	app.Version = "1.5"
 	var wordlist, subsetSize, outputFile, searchWord string
-	var verbose bool
+	var verbose, listAll bool
 	app.Commands = []cli.Command{
 		{
 			Name:    "match",
@@ -33,16 +33,32 @@ func main() {
 					Usage:       "word to use",
 					Destination: &searchWord,
 				},
+				cli.BoolFlag{
+					Name:        "all, a",
+					Usage:       "list all matches",
+					Destination: &listAll,
+				},
 			},
 			Action: func(c *cli.Context) {
 				if len(wordlist) == 0 || len(searchWord) == 0 {
 					cli.ShowCommandHelp(c, "match")
 				} else {
-					word, score, err := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
-					if err != nil {
-						fmt.Printf("Not found|||-1")
+					if listAll {
+						words, scores, err := goagrep.GetMatches(strings.ToLower(searchWord), wordlist)
+						if err != nil {
+							fmt.Printf("Not found|||-1")
+						} else {
+							for i, word := range words {
+								fmt.Printf("%v|||%v\n", word, scores[i])
+							}
+						}
 					} else {
-						fmt.Printf("%v|||%v", word, score)
+						word, score, err := goagrep.GetMatch(strings.ToLower(searchWord), wordlist)
+						if err != nil {
+							fmt.Printf("Not found|||-1")
+						} else {
+							fmt.Printf("%v|||%v", word, score)
+						}
 					}
 				}
 			},
@@ -68,7 +84,7 @@ func main() {
 					Destination: &subsetSize,
 				},
 				cli.BoolFlag{
-					Name:        "verbose",
+					Name:        "verbose, v",
 					Usage:       "Show more output",
 					Destination: &verbose,
 				},
