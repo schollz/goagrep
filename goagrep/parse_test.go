@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func BenchmarkScanWordsTuple4(b *testing.B) {
+func BenchmarkGenerateDB(b *testing.B) {
 	VERBOSE = false
 	wordpath := "../example/testlist"
 	path := "testlist.db"
@@ -17,7 +17,7 @@ func BenchmarkScanWordsTuple4(b *testing.B) {
 	}
 }
 
-func BenchmarkSplitIntoPartialsTuple4(b *testing.B) {
+func BenchmarkScanWords(b *testing.B) {
 	VERBOSE = false
 	wordpath := "../example/testlist"
 	path := "testlist.db"

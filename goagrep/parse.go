@@ -269,5 +269,4 @@ func GenerateDB(stringListPath string, databasePath string, tupleLength int, ver
 	VERBOSE = verbosity
 	words, tuples := scanWords(stringListPath, databasePath, tupleLength)
 	dumpToBoltDB(databasePath, words, tuples, tupleLength)
-
 }

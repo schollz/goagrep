@@ -1,4 +1,6 @@
-![Version 1.3](https://img.shields.io/badge/version-1.3-brightgreen.svg?version=flat-square) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
+![Version 1.5](https://img.shields.io/badge/version-1.5-brightgreen.svg?version=flat-square)
+![Coverage](https://img.shields.io/badge/coverage-81%25-orange.svg)
+[![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
 # goagrep
 
@@ -53,6 +55,7 @@ OPTIONS:
    --list, -l           wordlist to use, seperated by newlines
    --database, -d       output database name (default: words.db)
    --size, -s           subset size (default: 3)
+   --verbose, -v        show more output
 ```
 
 ## Matching
@@ -64,6 +67,7 @@ USAGE:
 OPTIONS:
    --database, -d       input database name (built using 'goagrep build')
    --word, -w           word to use
+   --all, -a            list all matches
 ```
 
 ## Example
@@ -101,7 +105,7 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 
 # Usage (library)
 
-You can also use as a library. Here's an example program (see in `example/`)
+You can also use as a library. Here's an example program (see also in `main.go`)
 
 ```golang
 package main
@@ -128,7 +132,7 @@ func main() {
 	// Find word
 	databaseFile := "words.db"
 	searchWord := "heroint"
-	word, score, _, _ := goagrep.GetMatch(searchWord, databaseFile)
+	word, score, _ := goagrep.GetMatch(searchWord, databaseFile)
 	fmt.Println(word, score)
 }
 ```

@@ -25,7 +25,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:        "database, d",
-					Usage:       "input database name (built using 'go-agrep build')",
+					Usage:       "input database name (built using 'goagrep build')",
 					Destination: &wordlist,
 				},
 				cli.StringFlag{
@@ -85,7 +85,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:        "verbose, v",
-					Usage:       "Show more output",
+					Usage:       "show more output",
 					Destination: &verbose,
 				},
 			},
