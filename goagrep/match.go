@@ -111,6 +111,11 @@ func GetMatch(s string, path string) (string, int, error) {
 			bestVal = v
 		}
 	}
+	if bestMatch == "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj" {
+		returnError = errors.New("No matches")
+		bestMatch = ""
+		bestVal = -1
+	}
 	return bestMatch, bestVal, returnError
 }
 
@@ -125,7 +130,7 @@ func GetMatches(s string, path string) ([]string, []int, error) {
 	matchWords := []string{}
 	matchScores := []int{}
 	var pairlist PairList
-	if len(matches) > 0 {
+	if len(matches) > 1 {
 		pairlist = rankByWordCount(matches)
 		if len(pairlist) > 100 {
 			pairlist = pairlist[0:99]

@@ -1,8 +1,11 @@
 package goagrep
 
 import (
+	"bufio"
 	"bytes"
 	"io"
+	"log"
+	"os"
 )
 
 var alphabet string
@@ -60,4 +63,29 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func lineCount(filepath string) (numLines int) {
+	// open a file
+	numLines = 0
+	if file, err := os.Open(filepath); err == nil {
+
+		// make sure it gets closed
+		defer file.Close()
+
+		// create a new scanner and read the file line by line
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			numLines = numLines + 1
+		}
+
+		// check for errors
+		if err = scanner.Err(); err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		log.Fatal(err)
+	}
+	return
 }

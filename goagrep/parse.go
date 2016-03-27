@@ -53,33 +53,7 @@ func getPartials(s string, tupleLength int) []string {
 	return partials[0:num]
 }
 
-func lineCount(filepath string) (numLines int) {
-	// open a file
-	numLines = 0
-	if file, err := os.Open(filepath); err == nil {
-
-		// make sure it gets closed
-		defer file.Close()
-
-		// create a new scanner and read the file line by line
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			numLines = numLines + 1
-		}
-
-		// check for errors
-		if err = scanner.Err(); err != nil {
-			log.Fatal(err)
-		}
-
-	} else {
-		log.Fatal(err)
-	}
-	return
-}
-
 func scanWords(wordpath string, path string, tupleLength int) (words map[string]int, tuples map[string]string) {
-
 	totalLines := lineCount(wordpath)
 
 	inFile, _ := os.Open(wordpath)
