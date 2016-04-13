@@ -32,7 +32,7 @@ linux    arm
 darwin    amd64"""
 
 arches = arches.split("\n")
-version = "1.2"
+version = "1.6"
 try:
     os.system("rm -rf builds")
 except:
@@ -46,14 +46,14 @@ for arch in arches:
     exe = ""
     if "windows" in goos:
         exe = ".exe"
-    cmd1  = 'env GOOS=%(goos)s GOARCH=%(goarch)s go build -o builds/go-agrep%(exe)s' % {'goos':goos,'goarch':goarch,'exe':exe}
-    cmd2 = 'zip go-agrep-%(version)s-%(goos)s-%(goarch)s.zip go-agrep%(exe)s' % {'goos':goos,'goarch':goarch,'exe':exe,'version':version}
+    cmd1  = 'env GOOS=%(goos)s GOARCH=%(goarch)s go build -o builds/goagrep%(exe)s' % {'goos':goos,'goarch':goarch,'exe':exe}
+    cmd2 = 'zip goagrep-%(version)s-%(goos)s-%(goarch)s.zip goagrep%(exe)s' % {'goos':goos,'goarch':goarch,'exe':exe,'version':version}
     print(cmd1)
     os.system(cmd1)
     os.chdir("builds")
     print(cmd2)
     os.system(cmd2)
-    cmd3 = 'rm go-agrep%(exe)s' % {'exe':exe}
+    cmd3 = 'rm goagrep%(exe)s' % {'exe':exe}
     print(cmd3)
     os.system(cmd3)
     os.chdir("../")

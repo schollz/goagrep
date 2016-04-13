@@ -13,8 +13,8 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "goagrep"
-	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (go-agrep build help)."
-	app.Version = "1.5"
+	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (goagrep build)."
+	app.Version = "1.6"
 	var wordlist, subsetSize, outputFile, searchWord string
 	var verbose, listAll bool
 	app.Commands = []cli.Command{
@@ -47,6 +47,8 @@ func main() {
 						words, scores, err := goagrep.GetMatches(strings.ToLower(searchWord), wordlist)
 						if err != nil {
 							fmt.Printf("Not found|||-1")
+							fmt.Println(err)
+							fmt.Println(words, scores)
 						} else {
 							for i, word := range words {
 								fmt.Printf("%v|||%v\n", word, scores[i])
