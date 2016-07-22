@@ -91,7 +91,7 @@ func main() {
 					Destination: &verbose,
 				},
 			},
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				if len(subsetSize) == 0 {
 					subsetSize = "3"
 				}
@@ -106,6 +106,7 @@ func main() {
 					goagrep.GenerateDB(wordlist, outputFile, tupleLength, verbose)
 					fmt.Println("Finished building db")
 				}
+				return nil
 			},
 		},
 	}
