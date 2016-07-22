@@ -1,4 +1,4 @@
-![Version 1.5](https://img.shields.io/badge/version-1.5-brightgreen.svg?version=flat-square)
+![Version 1.61](https://img.shields.io/badge/version-1.61-brightgreen.svg?version=flat-square)
 ![Coverage](https://img.shields.io/badge/coverage-81%25-orange.svg)
 [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
@@ -29,9 +29,9 @@ Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wo
 
 Program                                             | Runtime  | Database size
 --------------------------------------------------- | -------- | -----------------------
-[goagrep](https://github.com/schollz/goagrep/tree/master) | **3 ms**     | 69 MB (subset size = 5)
-[goagrep](https://github.com/schollz/goagrep/tree/master) | 7 ms     | 66 MB (subset size = 4)
-[goagrep](https://github.com/schollz/goagrep/tree/master) | 84 ms    | 58 MB (subset size = 3)
+[goagrep](https://github.com/schollz/goagrep/tree/master) | **3 ms**     | 64 MB (subset size = 5)
+[goagrep](https://github.com/schollz/goagrep/tree/master) | 7 ms     | 64 MB (subset size = 4)
+[goagrep](https://github.com/schollz/goagrep/tree/master) | 84 ms    | 64 MB (subset size = 3)
 [agrep](https://github.com/Wikinaut/agrep)          | 53 ms    | 3.5 MB (original file)
 [tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
 
@@ -117,23 +117,26 @@ import (
 	"github.com/schollz/goagrep/goagrep"
 )
 
-func init() {
-	// Build database
-	// only needs to be done once!
-	databaseFile := "words.db"
-	wordlist := "testlist"
-	tupleLength := 3
-	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
-		goagrep.GenerateDB(wordlist, databaseFile, tupleLength)
-	}
+var databaseFile string
+var wordlist string
+var tupleLength int
 
+func init() {
+	databaseFile = "words.db"
+	wordlist = "testlist"
+	tupleLength = 5
+
+	// Build database
+	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
+		goagrep.GenerateDB(wordlist, databaseFile, tupleLength, true)
+	}
 }
+
 func main() {
 	// Find word
-	databaseFile := "words.db"
 	searchWord := "heroint"
-	word, score, _ := goagrep.GetMatch(searchWord, databaseFile)
-	fmt.Println(word, score)
+	word, score, err := goagrep.GetMatch(searchWord, databaseFile)
+	fmt.Println(word, score, err)
 }
 ```
 
