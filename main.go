@@ -39,7 +39,7 @@ func main() {
 					Destination: &listAll,
 				},
 			},
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				if len(wordlist) == 0 || len(searchWord) == 0 {
 					cli.ShowCommandHelp(c, "match")
 				} else {
@@ -63,6 +63,7 @@ func main() {
 						}
 					}
 				}
+				return nil
 			},
 		},
 		{
