@@ -1,4 +1,4 @@
-![Version 1.61](https://img.shields.io/badge/version-1.61-brightgreen.svg?version=flat-square) ![Coverage](https://img.shields.io/badge/coverage-81%25-orange.svg) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
+![Version 2.0beta](https://img.shields.io/badge/version-2.0beta-brightgreen.svg?version=flat-square) ![Coverage](https://img.shields.io/badge/coverage-78%25-orange.svg) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
 # goagrep
 
@@ -24,18 +24,16 @@ It seems that [`agrep`](https://github.com/Wikinaut/agrep) really a comparable c
 
 ## Benchmarking
 
-Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks were run with a single word, and can flucuate ~50% depending on the word. For the network bencharmks, `<CMD> = $GOPATH/bin/tcpecho prometeus localhost 9992`.
+Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` or using `go test -bench=Match` using AMD FX(tm)-8350.
 
-Program                                         | Runtime  | Memory usage | Subset size
------------------------------------------------ | -------- | ------------ | -----------
-`goagrep serve`                                 | 7 ms     | 90 MB ram    | 5
-`goagrep serve`                                 | 13 ms    | 90 MB ram    | 4
-`goagrep serve`                                 | 38 ms    | 90 MB ram    | 3
-`goagrep match`                                 | 10 ms     | 64 MB disk   | 5
-`goagrep match`                                 | 21 ms     | 64 MB disk   | 4
-`goagrep match`                                 | 106 ms    | 64 MB disk   | 3
-[agrep](https://github.com/Wikinaut/agrep)      | 7 ms    | 3.5 MB disk  | n/a
-[tre-agrep](http://laurikari.net/tre/download/) | 613 ms | 3.5 MB disk  | n/a
+Program                                         | Runtime | Memory usage
+----------------------------------------------- | ------- | ------------
+`goagrep` `in memory`, subset size = 5     | 0.2 ms  | 90 MB ram
+`goagrep` `DB`, subset size = 5            | 0.9 ms    | 64 MB disk
+`goagrep` `in memory`, subset size = 3     | 18 ms   | 90 MB ram
+`goagrep` `DB`, subset size = 3            | 71 ms   | 64 MB disk
+[agrep](https://github.com/Wikinaut/agrep)      | 7 ms    | 3.5 MB disk
+[tre-agrep](http://laurikari.net/tre/download/) | 613 ms  | 3.5 MB disk
 
 # Installation
 
@@ -43,103 +41,44 @@ Program                                         | Runtime  | Memory usage | Subs
 go get github.com/schollz/goagrep
 ```
 
-# Usage (program)
+# Usage
 
-## Building DB
+You can either build a hard-disk database or use it in memory (i.e. in a program or as a TCP client). See `main.go` or tests for examples.
 
-```
-USAGE:
-   goagrep build [command options] [arguments...]
+## TCP server example
 
-OPTIONS:
-   --list, -l           wordlist to use, seperated by newlines
-   --database, -d       output database name (default: words.db)
-   --size, -s           subset size (default: 3)
-   --verbose, -v        show more output
-```
-
-## Matching
+Start a server with a list:
 
 ```
-USAGE:
-   goagrep match [command options] [arguments...]
-
-OPTIONS:
-   --database, -d       input database name (built using 'goagrep build')
-   --word, -w           word to use
-   --all, -a            list all matches
+> $GOPATH/bin/goagrep serve -l ../example/testlist
+2016/07/23 07:05:35 Creating server with address localhost:9992
 ```
 
-## Example
-
-First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `goagrep` database using:
+And then you can match words using netcat or similar:
 
 ```
-$ goagrep build -l testlist -d words.db
-Generating 'words.db' from 'testlist' with subset size 3
-Parsing subsets...
-1000 / 1000  100.00 % 0
-Finished parsing subsets
-Loading words into db...
-1000 / 1000  100.00 % 0
-Words took 13.0398ms
-Loading subsets into db...
-2281 / 2281  100.00 % 0
-Subsets took 19.0267ms
+> echo heroint | nc localhost 9992
+heroine
+```
+
+
+## Standalone cli utility
+
+Build a database with a list:
+
+```
+> $GOPATH/bin/goagrep build -l ../example/testlist
+Generating 'words.db' from '../example/testlist' with subset size 3
 Finished building db
 ```
 
-And then you can match any of the words using:
+And then you can match by telling the program where the database is:
 
 ```
-$ goagrep match -w heroint -d words.db
+> $GOPATH/bin/goagrep match -d words.db -w heroint
 heroine|||1
 ```
 
-which returns the best match and the levenshtein score.
-
-You can test with a big list of words from Univ. Michigan:
-
-```bash
-wget http://www-personal.umich.edu/%7Ejlawler/wordlist
-```
-
-# Usage (library)
-
-You can also use as a library. Here's an example program (see also in `main.go`)
-
-```go
-package main
-
-import (
-    "fmt"
-    "os"
-
-    "github.com/schollz/goagrep/goagrep"
-)
-
-var databaseFile string
-var wordlist string
-var tupleLength int
-
-func init() {
-    databaseFile = "words.db"
-    wordlist = "testlist"
-    tupleLength = 5
-
-    // Build database
-    if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
-        goagrep.GenerateDB(wordlist, databaseFile, tupleLength, true)
-    }
-}
-
-func main() {
-    // Find word
-    searchWord := "heroint"
-    word, score, err := goagrep.GetMatch(searchWord, databaseFile)
-    fmt.Println(word, score, err)
-}
-```
 
 # History
 
