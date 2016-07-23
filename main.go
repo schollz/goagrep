@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/firstrow/tcp_server"
@@ -160,14 +162,22 @@ func main() {
 	if !tcpServer {
 		os.Exit(0)
 	}
-	fmt.Println(wordlist, subsetSize, verbose)
+
 	tupleLength, _ := strconv.Atoi(subsetSize)
 	words, tuples := goagrep.GenerateDBInMemory(wordlist, tupleLength, verbose)
+	start := time.Now()
 
 	server := tcp_server.New("localhost:9992")
 	server.OnNewMessage(func(c *tcp_server.Client, message string) {
+		if verbose {
+			start = time.Now()
+		}
 		matches, _, _ := goagrep.GetMatchesInMemory(message, words, tuples, tupleLength)
 		c.Send(matches[0])
+		if verbose {
+			elapsed := time.Since(start)
+			log.Printf("Best match for '%s' is '%s' %s", message, matches[0], elapsed)
+		}
 	})
 	server.Listen()
 }
