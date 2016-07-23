@@ -10,7 +10,7 @@ func BenchmarkGenerateDB(b *testing.B) {
 	wordpath := "../example/testlist"
 	path := "testlist.db"
 	tupleLength := 4
-	words, tuples := scanWords(wordpath, path, tupleLength)
+	words, tuples := scanWords(wordpath, tupleLength)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		dumpToBoltDB(path, words, tuples, tupleLength)
@@ -20,11 +20,10 @@ func BenchmarkGenerateDB(b *testing.B) {
 func BenchmarkScanWords(b *testing.B) {
 	VERBOSE = false
 	wordpath := "../example/testlist"
-	path := "testlist.db"
 	tupleLength := 4
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		scanWords(wordpath, path, tupleLength)
+		scanWords(wordpath, tupleLength)
 	}
 }
 

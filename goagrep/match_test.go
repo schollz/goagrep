@@ -12,7 +12,7 @@ func init() {
 func Example1() {
 	wordpath := "../example/testlist"
 	path := "testlist3.db"
-	words, tuples := scanWords(wordpath, path, 3)
+	words, tuples := scanWords(wordpath, 3)
 	dumpToBoltDB(path, words, tuples, 3)
 	match, score, err := GetMatch("heroint", "testlist3.db")
 	fmt.Println(match, score, err)
@@ -22,7 +22,7 @@ func Example1() {
 func Example2() {
 	wordpath := "../example/testlist"
 	path := "testlist4.db"
-	words, tuples := scanWords(wordpath, path, 4)
+	words, tuples := scanWords(wordpath, 4)
 	dumpToBoltDB(path, words, tuples, 4)
 	matches, scores, err := GetMatches("zack's barn", "testlist4.db")
 	fmt.Println(matches[0:2], scores[0:2], err)
@@ -32,7 +32,7 @@ func Example2() {
 func Example3() {
 	wordpath := "../example/testlist"
 	path := "testlist5.db"
-	words, tuples := scanWords(wordpath, path, 5)
+	words, tuples := scanWords(wordpath, 5)
 	dumpToBoltDB(path, words, tuples, 5)
 	match, score, err := GetMatch("zzzzz zzz zzzz", "testlist5.db")
 	fmt.Println(match, score, err)

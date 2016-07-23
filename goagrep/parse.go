@@ -53,7 +53,7 @@ func getPartials(s string, tupleLength int) []string {
 	return partials[0:num]
 }
 
-func scanWords(wordpath string, path string, tupleLength int) (words map[string]int, tuples map[string]string) {
+func scanWords(wordpath string, tupleLength int) (words map[string]int, tuples map[string]string) {
 	totalLines := lineCount(wordpath)
 
 	inFile, _ := os.Open(wordpath)
@@ -267,6 +267,6 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 // tupleLength is the length of the subsets you want to use
 func GenerateDB(stringListPath string, databasePath string, tupleLength int, verbosity bool) {
 	VERBOSE = verbosity
-	words, tuples := scanWords(stringListPath, databasePath, tupleLength)
+	words, tuples := scanWords(stringListPath, tupleLength)
 	dumpToBoltDB(databasePath, words, tuples, tupleLength)
 }
