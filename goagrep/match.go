@@ -21,7 +21,9 @@ func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[s
 	for _, partial := range partials {
 		for _, val := range tuplesLookup[partial] {
 			possibleWord := wordsLookup[val]
-			matches[possibleWord] = levenshtein.Distance(s, possibleWord)
+			if _, ok := matches[possibleWord]; !ok {
+				matches[possibleWord] = levenshtein.Distance(s, possibleWord)
+			}
 		}
 	}
 
