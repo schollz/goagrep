@@ -12,7 +12,7 @@ func init() {
 func Example1() {
 	wordpath := "../example/testlist"
 	path := "testlist3.db"
-	words, tuples := scanWords(wordpath, 3)
+	words, tuples, _, _ := scanWords(wordpath, 3, false)
 	dumpToBoltDB(path, words, tuples, 3)
 	match, score, err := GetMatch("heroint", "testlist3.db")
 	fmt.Println(match, score, err)
@@ -22,7 +22,7 @@ func Example1() {
 func Example2() {
 	wordpath := "../example/testlist"
 	path := "testlist4.db"
-	words, tuples := scanWords(wordpath, 4)
+	words, tuples, _, _ := scanWords(wordpath, 4, false)
 	dumpToBoltDB(path, words, tuples, 4)
 	matches, scores, err := GetMatches("zack's barn", "testlist4.db")
 	fmt.Println(matches[0:2], scores[0:2], err)
@@ -32,7 +32,7 @@ func Example2() {
 func Example3() {
 	wordpath := "../example/testlist"
 	path := "testlist5.db"
-	words, tuples := scanWords(wordpath, 5)
+	words, tuples, _, _ := scanWords(wordpath, 5, false)
 	dumpToBoltDB(path, words, tuples, 5)
 	match, score, err := GetMatch("zzzzz zzz zzzz", "testlist5.db")
 	fmt.Println(match, score, err)
@@ -49,6 +49,15 @@ func Example5() {
 	matches, err := findMatches("cambium", "testlist4.db")
 	fmt.Println(len(matches), err)
 	// Output: 3 <nil>
+}
+
+func Example6() {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	matches, _, _ := GetMatchesInMemory("mykovirus", words, tuples, tupleLength)
+	fmt.Println(matches[0])
+	// Output: myxovirus
 }
 
 func BenchmarkPartialsTuple3(b *testing.B) {
@@ -74,6 +83,18 @@ func BenchmarkMatchTuple3(b *testing.B) {
 		GetMatch("heroint", "testlist3.db")
 		GetMatch("myxovirus", "testlist3.db")
 		GetMatch("pocket-handkerchief", "testlist3.db")
+	}
+}
+
+func BenchmarkMatchTuple3InMemory(b *testing.B) {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemory("heroint", words, tuples, tupleLength)
+		GetMatchesInMemory("myxovirus", words, tuples, tupleLength)
+		GetMatchesInMemory("pocket-handkerchief", words, tuples, tupleLength)
 	}
 }
 

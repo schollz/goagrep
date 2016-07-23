@@ -110,6 +110,42 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:    "serve",
+			Aliases: []string{"s"},
+			Usage:   "serve database on TCP for subsequent fuzzy matching",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "list, l",
+					Usage:       "wordlist to use, seperated by newlines",
+					Destination: &wordlist,
+				},
+				cli.StringFlag{
+					Name:        "size, s",
+					Usage:       "subset size (default: 3)",
+					Destination: &subsetSize,
+				},
+				cli.BoolFlag{
+					Name:        "verbose, v",
+					Usage:       "show more output",
+					Destination: &verbose,
+				},
+			},
+			Action: func(c *cli.Context) error {
+				if len(subsetSize) == 0 {
+					subsetSize = "3"
+				}
+				if len(wordlist) == 0 {
+					cli.ShowCommandHelp(c, "serve")
+				} else {
+					fmt.Println("Generating '" + outputFile + "' from '" + wordlist + "' with subset size " + subsetSize)
+					tupleLength, _ := strconv.Atoi(subsetSize)
+					goagrep.GenerateDB(wordlist, outputFile, tupleLength, verbose)
+					fmt.Println("Finished building db")
+				}
+				return nil
+			},
+		},
 	}
 
 	app.Run(os.Args)

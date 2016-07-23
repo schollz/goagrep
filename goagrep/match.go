@@ -12,6 +12,37 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int) ([]string, []int, error) {
+	var returnError error
+	returnError = nil
+	s = strings.ToLower(s)
+	partials := getPartials(s, tupleLength)
+	matches := make(map[string]int)
+	for _, partial := range partials {
+		for _, val := range tuplesLookup[partial] {
+			possibleWord := wordsLookup[val]
+			matches[possibleWord] = levenshtein.Distance(s, possibleWord)
+		}
+	}
+
+	matchWords := []string{}
+	matchScores := []int{}
+	var pairlist PairList
+	if len(matches) > 1 {
+		pairlist = rankByWordCount(matches)
+		if len(pairlist) > 100 {
+			pairlist = pairlist[0:99]
+		}
+		for i := range pairlist {
+			matchWords = append(matchWords, pairlist[i].Key)
+			matchScores = append(matchScores, pairlist[i].Value)
+		}
+	} else {
+		returnError = errors.New("No matches")
+	}
+	return matchWords, matchScores, returnError
+}
+
 func findMatches(s string, path string) (matches map[string]int, returnError error) {
 	returnError = nil
 	// normalize

@@ -53,7 +53,7 @@ func getPartials(s string, tupleLength int) []string {
 	return partials[0:num]
 }
 
-func scanWords(wordpath string, tupleLength int) (words map[string]int, tuples map[string]string) {
+func scanWords(wordpath string, tupleLength int, makeLookup bool) (words map[string]int, tuples map[string]string, wordsLookup map[int]string, tuplesLookup map[string][]int) {
 	totalLines := lineCount(wordpath)
 
 	inFile, _ := os.Open(wordpath)
@@ -61,8 +61,12 @@ func scanWords(wordpath string, tupleLength int) (words map[string]int, tuples m
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
 
+	// initialize
 	words = make(map[string]int)
 	tuples = make(map[string]string)
+	wordsLookup = make(map[int]string)
+	tuplesLookup = make(map[string][]int)
+
 	numTuples := 0
 	numWords := 0
 	lineNum := 0
@@ -76,22 +80,35 @@ func scanWords(wordpath string, tupleLength int) (words map[string]int, tuples m
 			bar.Increment()
 		}
 		lineNum++
-		// s := strings.Replace(scanner.Text(), "/", "", -1)
-		// s = strings.Replace(s, "'", "", -1)
 		s := strings.TrimSpace(scanner.Text())
 
 		_, ok := words[s]
 		if ok == false {
-			words[s] = numWords
+			if makeLookup {
+				wordsLookup[numWords] = s
+			} else {
+				words[s] = numWords
+			}
 
 			partials := getPartials(s, tupleLength)
 			for i := 0; i < len(partials); i++ {
 				_, ok := tuples[partials[i]]
+				if makeLookup {
+					_, ok = tuplesLookup[partials[i]]
+				}
 				if ok == false {
-					tuples[partials[i]] = strconv.Itoa(numWords)
+					if makeLookup {
+						tuplesLookup[partials[i]] = append([]int{}, numWords)
+					} else {
+						tuples[partials[i]] = strconv.Itoa(numWords)
+					}
 					numTuples++
 				} else {
-					tuples[partials[i]] += " " + strconv.Itoa(numWords)
+					if makeLookup {
+						tuplesLookup[partials[i]] = append(tuplesLookup[partials[i]], numWords)
+					} else {
+						tuples[partials[i]] += " " + strconv.Itoa(numWords)
+					}
 				}
 			}
 
@@ -267,6 +284,12 @@ func dumpToBoltDB(path string, words map[string]int, tuples map[string]string, t
 // tupleLength is the length of the subsets you want to use
 func GenerateDB(stringListPath string, databasePath string, tupleLength int, verbosity bool) {
 	VERBOSE = verbosity
-	words, tuples := scanWords(stringListPath, tupleLength)
+	words, tuples, _, _ := scanWords(stringListPath, tupleLength, false)
 	dumpToBoltDB(databasePath, words, tuples, tupleLength)
+}
+
+func GenerateDBInMemory(stringListPath string, tupleLength int, verbosity bool) (words map[int]string, tuples map[string][]int) {
+	VERBOSE = verbosity
+	_, _, words, tuples = scanWords(stringListPath, tupleLength, true)
+	return
 }
