@@ -6,10 +6,16 @@ import (
 )
 
 func main() {
+	usage := "Echos the message to the TCP host specified.\nusage: tcpecho [message] [destination] [port]"
+	if len(os.Args) != 4 {
+		println(usage)
+		os.Exit(1)
+	}
 	strEcho := os.Args[1] + "\n"
 	servAddr := os.Args[2] + ":" + os.Args[3]
 	tcpAddr, err := net.ResolveTCPAddr("tcp", servAddr)
 	if err != nil {
+		println(usage)
 		println("ResolveTCPAddr failed:", err.Error())
 		os.Exit(1)
 	}
