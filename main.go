@@ -173,11 +173,11 @@ func main() {
 			start = time.Now()
 		}
 		matches, _, _ := goagrep.GetMatchesInMemory(message, words, tuples, tupleLength)
-		c.Send(matches[0])
 		if verbose {
 			elapsed := time.Since(start)
-			log.Printf("Best match for '%s' is '%s' %s", message, matches[0], elapsed)
+			log.Printf("Best match for '%s' is '%s' %s", strings.TrimSpace(message), matches[0], elapsed)
 		}
+		c.Send(matches[0])
 	})
 	server.Listen()
 }
