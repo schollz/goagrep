@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/firstrow/tcp_server"
 	"github.com/schollz/goagrep/goagrep"
 )
 
@@ -17,6 +18,8 @@ func main() {
 	app.Version = "1.61"
 	var wordlist, subsetSize, outputFile, searchWord string
 	var verbose, listAll bool
+	var tcpServer bool
+	var port string
 	app.Commands = []cli.Command{
 		{
 			Name:    "match",
@@ -125,6 +128,11 @@ func main() {
 					Usage:       "subset size (default: 3)",
 					Destination: &subsetSize,
 				},
+				cli.StringFlag{
+					Name:        "port, p",
+					Usage:       "port to use (default: 3334)",
+					Destination: &port,
+				},
 				cli.BoolFlag{
 					Name:        "verbose, v",
 					Usage:       "show more output",
@@ -135,13 +143,13 @@ func main() {
 				if len(subsetSize) == 0 {
 					subsetSize = "3"
 				}
+				if len(port) == 0 {
+					port = "3334"
+				}
 				if len(wordlist) == 0 {
 					cli.ShowCommandHelp(c, "serve")
 				} else {
-					fmt.Println("Generating '" + outputFile + "' from '" + wordlist + "' with subset size " + subsetSize)
-					tupleLength, _ := strconv.Atoi(subsetSize)
-					goagrep.GenerateDB(wordlist, outputFile, tupleLength, verbose)
-					fmt.Println("Finished building db")
+					tcpServer = true
 				}
 				return nil
 			},
@@ -149,4 +157,17 @@ func main() {
 	}
 
 	app.Run(os.Args)
+	if !tcpServer {
+		os.Exit(0)
+	}
+	fmt.Println(wordlist, subsetSize, verbose)
+	tupleLength, _ := strconv.Atoi(subsetSize)
+	words, tuples := goagrep.GenerateDBInMemory(wordlist, tupleLength, verbose)
+
+	server := tcp_server.New("localhost:9992")
+	server.OnNewMessage(func(c *tcp_server.Client, message string) {
+		matches, _, _ := goagrep.GetMatchesInMemory(message, words, tuples, tupleLength)
+		c.Send(matches[0])
+	})
+	server.Listen()
 }
