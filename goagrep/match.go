@@ -12,7 +12,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int) ([]string, []int, error) {
+func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int, findBestMatch bool) ([]string, []int, error) {
 	var returnError error
 	returnError = nil
 	s = strings.ToLower(s)
@@ -23,6 +23,23 @@ func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[s
 			possibleWord := wordsLookup[val]
 			matches[possibleWord] = levenshtein.Distance(s, possibleWord)
 		}
+	}
+
+	if findBestMatch {
+		bestMatch := "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj"
+		bestVal := 1000
+		for k, v := range matches {
+			if v < bestVal {
+				bestMatch = k
+				bestVal = v
+			}
+		}
+		if bestMatch == "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj" {
+			returnError = errors.New("No matches")
+			bestMatch = ""
+			bestVal = -1
+		}
+		return append([]string{}, bestMatch), append([]int{}, bestVal), nil
 	}
 
 	matchWords := []string{}

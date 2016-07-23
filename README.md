@@ -1,13 +1,10 @@
-![Version 1.61](https://img.shields.io/badge/version-1.61-brightgreen.svg?version=flat-square)
-![Coverage](https://img.shields.io/badge/coverage-81%25-orange.svg)
-[![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
+![Version 1.61](https://img.shields.io/badge/version-1.61-brightgreen.svg?version=flat-square) ![Coverage](https://img.shields.io/badge/coverage-81%25-orange.svg) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
 # goagrep
 
-<!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg)
- -->
+<!-- ![Big Fuzz Mascot](http://ecx.images-amazon.com/images/I/417W-2NwzpL._SX355_.jpg) -->
 
-_There are situations where you want to take the user's input and match a primary key in a database. But, immediately a problem is introduced: what happens if the user spells the primary key incorrectly? This fuzzy string matching program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list._
+ _There are situations where you want to take the user's input and match a primary key in a database. But, immediately a problem is introduced: what happens if the user spells the primary key incorrectly? This fuzzy string matching program solves this problem - it takes any string, misspelled or not, and matches to one a specified key list._
 
 # About
 
@@ -18,24 +15,27 @@ The subset length dictates how many pieces a word should be cut into, for purpos
 A smaller subset length will be more forgiving (it allows more mispellings), thus more accurate, but it would require more disk and more time to process since there are more words for each subset. A bigger subset length will help save hard drive space and decrease the runtime since there are fewer words that have the same, longer, subset. You can get much faster speeds with longer subset lengths, but keep in mind that this will not be able to match strings that have an error in the middle of the string and are have a length < 2*subset length - 1.
 
 ## Why use `goagrep`?
-It seems that [`agrep`](https://github.com/Wikinaut/agrep)  really a comparable choice for most applications. It does not require any database and its comparable speed to `goagrep`. However, there are situations where `goagrep` is more useful:
 
-1. `goagrep` can search much longer strings: [`agrep`](https://github.com/Wikinaut/agrep)  is limited to 32 characters while `goagrep` is only limited to 500. [`tre-agrep`](http://laurikari.net/tre/download/)  is not limited, but is much slower.
-2. `goagrep` can handle many mistakes in a string: [`agrep`](https://github.com/Wikinaut/agrep)  is limited to edit distances of 8, while `goagrep` has no limit.
-3. `goagrep` is *fast* (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you
+It seems that [`agrep`](https://github.com/Wikinaut/agrep) really a comparable choice for most applications. It does not require any database and its comparable speed to `goagrep`. However, there are situations where `goagrep` is more useful:
+
+1. `goagrep` can search much longer strings: [`agrep`](https://github.com/Wikinaut/agrep) is limited to 32 characters while `goagrep` is only limited to 500\. [`tre-agrep`](http://laurikari.net/tre/download/) is not limited, but is much slower.
+2. `goagrep` can handle many mistakes in a string: [`agrep`](https://github.com/Wikinaut/agrep) is limited to edit distances of 8, while `goagrep` has no limit.
+3. `goagrep` is _fast_ (see benchmarking below), and the speed can be tuned: You can set higher subset lengths to get faster speeds and less accuracy - leaving the tradeoff up to you
 
 ## Benchmarking
-Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks were run with a single word, and can flucuate ~50% depending on the word.
 
-Program                                             | Runtime  | Database size
---------------------------------------------------- | -------- | -----------------------
-[goagrep](https://github.com/schollz/goagrep/tree/master) | **3 ms**     | 64 MB (subset size = 5)
-[goagrep](https://github.com/schollz/goagrep/tree/master) | 7 ms     | 64 MB (subset size = 4)
-[goagrep](https://github.com/schollz/goagrep/tree/master) | 84 ms    | 64 MB (subset size = 3)
-[agrep](https://github.com/Wikinaut/agrep)          | 53 ms    | 3.5 MB (original file)
-[tre-agrep](http://laurikari.net/tre/download/)     | 1,178 ms | 3.5 MB (original file)
+Benchmarking using the [319,378 word dictionary](http://www.md5this.com/tools/wordlists.html) (3.5 MB), run with `perf stat -r 50 -d <CMD>` using Intel(R) Core(TM) i5-4310U CPU @ 2.00GHz. These benchmarks were run with a single word, and can flucuate ~50% depending on the word. For the network bencharmks, `<CMD> = $GOPATH/bin/tcpecho prometeus localhost 9992`.
 
-
+Program                                         | Runtime  | Memory usage | Subset size
+----------------------------------------------- | -------- | ------------ | -----------
+`goagrep serve`                                 | 7 ms     | 90 MB ram    | 5
+`goagrep serve`                                 | 13 ms    | 90 MB ram    | 4
+`goagrep serve`                                 | 38 ms    | 90 MB ram    | 3
+`goagrep match`                                 | 10 ms     | 64 MB disk   | 5
+`goagrep match`                                 | 21 ms     | 64 MB disk   | 4
+`goagrep match`                                 | 106 ms    | 64 MB disk   | 3
+[agrep](https://github.com/Wikinaut/agrep)      | 7 ms    | 3.5 MB disk  | n/a
+[tre-agrep](http://laurikari.net/tre/download/) | 613 ms | 3.5 MB disk  | n/a
 
 # Installation
 
@@ -71,6 +71,7 @@ OPTIONS:
 ```
 
 ## Example
+
 First compile a list of your phrases or words that you want to match (see `testlist`). Then you can build a `goagrep` database using:
 
 ```
@@ -107,14 +108,14 @@ wget http://www-personal.umich.edu/%7Ejlawler/wordlist
 
 You can also use as a library. Here's an example program (see also in `main.go`)
 
-```golang
+```go
 package main
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
 
-	"github.com/schollz/goagrep/goagrep"
+    "github.com/schollz/goagrep/goagrep"
 )
 
 var databaseFile string
@@ -122,25 +123,26 @@ var wordlist string
 var tupleLength int
 
 func init() {
-	databaseFile = "words.db"
-	wordlist = "testlist"
-	tupleLength = 5
+    databaseFile = "words.db"
+    wordlist = "testlist"
+    tupleLength = 5
 
-	// Build database
-	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
-		goagrep.GenerateDB(wordlist, databaseFile, tupleLength, true)
-	}
+    // Build database
+    if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
+        goagrep.GenerateDB(wordlist, databaseFile, tupleLength, true)
+    }
 }
 
 func main() {
-	// Find word
-	searchWord := "heroint"
-	word, score, err := goagrep.GetMatch(searchWord, databaseFile)
-	fmt.Println(word, score, err)
+    // Find word
+    searchWord := "heroint"
+    word, score, err := goagrep.GetMatch(searchWord, databaseFile)
+    fmt.Println(word, score, err)
 }
 ```
 
 # History
+
 - ~~Make commmand line stuff with github.com/codegangsta/cli~~
 - ~~Command line help~~
 - ~~Command line for generating cache~~
