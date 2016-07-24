@@ -66,6 +66,15 @@ func Example7() {
 	// Output: PhospHorous 0 <nil>
 }
 
+func Example8() {
+	stringListPath := "testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	matches, _, _ := GetMatchesInMemoryInParallel("mykovirus", words, tuples, tupleLength, false)
+	fmt.Println(len(matches))
+	// Output: 99
+}
+
 func BenchmarkPartialsTuple3(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		getPartials("alligator", 3)
@@ -81,6 +90,30 @@ func BenchmarkPartialsTuple4(b *testing.B) {
 func BenchmarkPartialsTuple5(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		getPartials("alligator", 5)
+	}
+}
+
+func BenchmarkAllMatchesTuple3InMemoryParallel(b *testing.B) {
+	stringListPath := "testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemoryInParallel("heroint", words, tuples, tupleLength, true)
+		GetMatchesInMemoryInParallel("myxovirus", words, tuples, tupleLength, true)
+		GetMatchesInMemoryInParallel("pocket-handkerchief", words, tuples, tupleLength, true)
+	}
+}
+
+func BenchmarkAllMatchesTuple3InMemory(b *testing.B) {
+	stringListPath := "testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemory("heroint", words, tuples, tupleLength, true)
+		GetMatchesInMemory("myxovirus", words, tuples, tupleLength, true)
+		GetMatchesInMemory("pocket-handkerchief", words, tuples, tupleLength, true)
 	}
 }
 

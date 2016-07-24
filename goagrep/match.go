@@ -10,8 +10,95 @@ import (
 
 	"github.com/arbovm/levenshtein"
 	"github.com/boltdb/bolt"
+	set "github.com/deckarep/golang-set"
 	"github.com/kmulvey/gohamming/hamming"
 )
+
+type resultA struct {
+	s2       string
+	distance int
+}
+
+type jobA struct {
+	s1 string
+	s2 string
+}
+
+func worker(id int, jobs <-chan jobA, results chan<- resultA) {
+	for j := range jobs {
+		matchVal := hamming.Calc(j.s1, strings.ToLower(j.s2))
+		if matchVal < 0 {
+			matchVal = levenshtein.Distance(j.s1, strings.ToLower(j.s2))
+		}
+		results <- resultA{s2: j.s2, distance: matchVal}
+	}
+}
+
+func GetMatchesInMemoryInParallel(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int, findBestMatch bool) ([]string, []int, error) {
+	var returnError error
+	returnError = nil
+	s = strings.ToLower(s)
+	partials := getPartials(s, tupleLength)
+	matches := make(map[string]int)
+
+	possibleWords := set.NewSet()
+	for _, partial := range partials {
+		for _, val := range tuplesLookup[partial] {
+			possibleWords.Add(wordsLookup[val])
+		}
+	}
+
+	// for _, val := range possibleWords.ToSlice() {
+	// 	possibleWord := val.(string)
+	// 	matches[possibleWord] = hamming.Calc(s, strings.ToLower(possibleWord))
+	// 	if matches[possibleWord] < 0 {
+	// 		matches[possibleWord] = levenshtein.Distance(s, strings.ToLower(possibleWord))
+	// 	}
+	// }
+
+	// In order to use our pool of workers we need to send
+	// them work and collect their results. We make 2
+	// channels for this.
+	jobs := make(chan jobA, len(possibleWords.ToSlice()))
+	results := make(chan resultA, len(possibleWords.ToSlice()))
+
+	// This starts up 3 workers, initially blocked
+	// because there are no jobs yet.
+	for w := 1; w <= 4; w++ {
+		go worker(w, jobs, results)
+	}
+
+	// Here we send 9 `jobs` and then `close` that
+	// channel to indicate that's all the work we have.
+	for _, val := range possibleWords.ToSlice() {
+		jobs <- jobA{s1: s, s2: val.(string)}
+	}
+	close(jobs)
+
+	// Finally we collect all the results of the work.
+	for a := 1; a <= len(possibleWords.ToSlice()); a++ {
+		t := <-results
+		// fmt.Println(t.s2, t.distance)
+		matches[t.s2] = t.distance
+	}
+
+	matchWords := []string{}
+	matchScores := []int{}
+	var pairlist PairList
+	if len(matches) > 1 {
+		pairlist = rankByWordCount(matches)
+		if len(pairlist) > 100 {
+			pairlist = pairlist[0:99]
+		}
+		for i := range pairlist {
+			matchWords = append(matchWords, pairlist[i].Key)
+			matchScores = append(matchScores, pairlist[i].Value)
+		}
+	} else {
+		returnError = errors.New("No matches")
+	}
+	return matchWords, matchScores, returnError
+}
 
 func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int, findBestMatch bool) ([]string, []int, error) {
 	bestMatch := "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj"
