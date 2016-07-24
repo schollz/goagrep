@@ -67,12 +67,12 @@ func Example7() {
 }
 
 func Example8() {
-	stringListPath := "testlist"
+	stringListPath := "../example/testlist"
 	tupleLength := 3
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	matches, _, _ := GetMatchesInMemoryInParallel("mykovirus", words, tuples, tupleLength, false)
 	fmt.Println(len(matches))
-	// Output: 99
+	// Output: 9
 }
 
 func BenchmarkPartialsTuple3(b *testing.B) {
@@ -93,7 +93,31 @@ func BenchmarkPartialsTuple5(b *testing.B) {
 	}
 }
 
-func BenchmarkAllMatchesTuple3InMemoryParallel(b *testing.B) {
+func BenchmarkAllMatchesTuple3InMemoryParallelSmallList(b *testing.B) {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemoryInParallel("heroint", words, tuples, tupleLength, true)
+		GetMatchesInMemoryInParallel("myxovirus", words, tuples, tupleLength, true)
+		GetMatchesInMemoryInParallel("pocket-handkerchief", words, tuples, tupleLength, true)
+	}
+}
+
+func BenchmarkAllMatchesTuple3InMemorySmallList(b *testing.B) {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemory("heroint", words, tuples, tupleLength, true)
+		GetMatchesInMemory("myxovirus", words, tuples, tupleLength, true)
+		GetMatchesInMemory("pocket-handkerchief", words, tuples, tupleLength, true)
+	}
+}
+
+func BenchmarkAllMatchesTuple3InMemoryParallelBigList(b *testing.B) {
 	stringListPath := "testlist"
 	tupleLength := 3
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
@@ -105,7 +129,7 @@ func BenchmarkAllMatchesTuple3InMemoryParallel(b *testing.B) {
 	}
 }
 
-func BenchmarkAllMatchesTuple3InMemory(b *testing.B) {
+func BenchmarkAllMatchesTuple3InMemoryBigList(b *testing.B) {
 	stringListPath := "testlist"
 	tupleLength := 3
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)

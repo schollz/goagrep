@@ -10,7 +10,6 @@ import (
 
 	"github.com/arbovm/levenshtein"
 	"github.com/boltdb/bolt"
-	set "github.com/deckarep/golang-set"
 	"github.com/kmulvey/gohamming/hamming"
 )
 
@@ -35,48 +34,32 @@ func worker(id int, jobs <-chan jobA, results chan<- resultA) {
 }
 
 func GetMatchesInMemoryInParallel(s string, wordsLookup map[int]string, tuplesLookup map[string][]int, tupleLength int, findBestMatch bool) ([]string, []int, error) {
+
 	var returnError error
 	returnError = nil
 	s = strings.ToLower(s)
 	partials := getPartials(s, tupleLength)
 	matches := make(map[string]int)
-
-	possibleWords := set.NewSet()
+	possibleWords := make(map[string]bool)
 	for _, partial := range partials {
 		for _, val := range tuplesLookup[partial] {
-			possibleWords.Add(wordsLookup[val])
+			possibleWords[wordsLookup[val]] = true
 		}
 	}
 
-	// for _, val := range possibleWords.ToSlice() {
-	// 	possibleWord := val.(string)
-	// 	matches[possibleWord] = hamming.Calc(s, strings.ToLower(possibleWord))
-	// 	if matches[possibleWord] < 0 {
-	// 		matches[possibleWord] = levenshtein.Distance(s, strings.ToLower(possibleWord))
-	// 	}
-	// }
+	jobs := make(chan jobA, len(possibleWords))
+	results := make(chan resultA, len(possibleWords))
 
-	// In order to use our pool of workers we need to send
-	// them work and collect their results. We make 2
-	// channels for this.
-	jobs := make(chan jobA, len(possibleWords.ToSlice()))
-	results := make(chan resultA, len(possibleWords.ToSlice()))
-
-	// This starts up 3 workers, initially blocked
-	// because there are no jobs yet.
-	for w := 1; w <= 4; w++ {
+	for w := 1; w <= 100; w++ {
 		go worker(w, jobs, results)
 	}
 
-	// Here we send 9 `jobs` and then `close` that
-	// channel to indicate that's all the work we have.
-	for _, val := range possibleWords.ToSlice() {
-		jobs <- jobA{s1: s, s2: val.(string)}
+	for val, _ := range possibleWords {
+		jobs <- jobA{s1: s, s2: val}
 	}
 	close(jobs)
 
-	// Finally we collect all the results of the work.
-	for a := 1; a <= len(possibleWords.ToSlice()); a++ {
+	for a := 1; a <= len(possibleWords); a++ {
 		t := <-results
 		// fmt.Println(t.s2, t.distance)
 		matches[t.s2] = t.distance
@@ -97,6 +80,7 @@ func GetMatchesInMemoryInParallel(s string, wordsLookup map[int]string, tuplesLo
 	} else {
 		returnError = errors.New("No matches")
 	}
+
 	return matchWords, matchScores, returnError
 }
 
