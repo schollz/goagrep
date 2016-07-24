@@ -46,7 +46,7 @@ func Example4() {
 }
 
 func Example5() {
-	matches, err := findMatches("cambium", "testlist4.db")
+	matches, _, _, err := findMatches("cambium", "testlist4.db")
 	fmt.Println(len(matches), err)
 	// Output: 3 <nil>
 }
@@ -79,7 +79,7 @@ func BenchmarkPartialsTuple5(b *testing.B) {
 }
 
 func BenchmarkMatchTuple3InMemory(b *testing.B) {
-	stringListPath := "testlist"
+	stringListPath := "../example/testlist"
 	tupleLength := 3
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	b.ResetTimer()
@@ -103,7 +103,7 @@ func BenchmarkMatchTuple4InMemory(b *testing.B) {
 }
 
 func BenchmarkMatchTuple5InMemory(b *testing.B) {
-	stringListPath := "testlist"
+	stringListPath := "../example/testlist"
 	tupleLength := 5
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	b.ResetTimer()
@@ -113,8 +113,9 @@ func BenchmarkMatchTuple5InMemory(b *testing.B) {
 		GetMatchesInMemory("pocket-handkerchief", words, tuples, tupleLength, true)
 	}
 }
+
 func BenchmarkMatchTuple3(b *testing.B) {
-	wordpath := "testlist"
+	wordpath := "../example/testlist"
 	path := "testlist3.db"
 	words, tuples, _, _ := scanWords(wordpath, 3, false)
 	dumpToBoltDB(path, words, tuples, 3)
@@ -135,7 +136,7 @@ func BenchmarkMatchTuple4(b *testing.B) {
 }
 
 func BenchmarkMatchTuple5(b *testing.B) {
-	wordpath := "testlist"
+	wordpath := "../example/testlist"
 	path := "testlist5.db"
 	words, tuples, _, _ := scanWords(wordpath, 5, false)
 	dumpToBoltDB(path, words, tuples, 5)
