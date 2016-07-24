@@ -40,10 +40,11 @@ func GetMatchesInMemoryInParallel(s string, wordsLookup map[int]string, tuplesLo
 	s = strings.ToLower(s)
 	partials := getPartials(s, tupleLength)
 	matches := make(map[string]int)
-	possibleWords := make(map[string]bool)
+	possibleWords := make(map[string]struct{})
 	for _, partial := range partials {
 		for _, val := range tuplesLookup[partial] {
-			possibleWords[wordsLookup[val]] = true
+			possibleWords[wordsLookup[val]] = struct{}{}
+
 		}
 	}
 

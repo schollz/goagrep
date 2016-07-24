@@ -71,8 +71,8 @@ func Example8() {
 	tupleLength := 3
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	matches, _, _ := GetMatchesInMemoryInParallel("mykovirus", words, tuples, tupleLength, false)
-	fmt.Println(len(matches))
-	// Output: 9
+	fmt.Println(matches[0])
+	// Output: myxovirus
 }
 
 func BenchmarkPartialsTuple3(b *testing.B) {
