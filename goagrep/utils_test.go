@@ -19,5 +19,5 @@ func ExampleUtils3() {
 
 func ExampleUtils4() {
 	fmt.Println(lineCount("../example/testlist"))
-	// Output: 1007
+	// Output: 1008
 }

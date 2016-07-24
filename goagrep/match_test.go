@@ -46,7 +46,7 @@ func Example4() {
 }
 
 func Example5() {
-	matches, _, _, err := findMatches("cambium", "testlist4.db")
+	matches, _, _, err := findMatches("cambium", "testlist4.db", false)
 	fmt.Println(len(matches), err)
 	// Output: 3 <nil>
 }
@@ -58,6 +58,12 @@ func Example6() {
 	matches, _, _ := GetMatchesInMemory("mykovirus", words, tuples, tupleLength, true)
 	fmt.Println(matches[0])
 	// Output: myxovirus
+}
+
+func Example7() {
+	_, bestMatch, bestMatchVal, err := findMatches("phosphorouS", "testlist3.db", true)
+	fmt.Println(bestMatch, bestMatchVal, err)
+	// Output: PhospHorous 0 <nil>
 }
 
 func BenchmarkPartialsTuple3(b *testing.B) {

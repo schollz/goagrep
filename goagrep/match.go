@@ -25,9 +25,9 @@ func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[s
 		for _, val := range tuplesLookup[partial] {
 			possibleWord := wordsLookup[val]
 			if _, ok := matches[possibleWord]; !ok {
-				matches[possibleWord] = hamming.Calc(s, possibleWord)
+				matches[possibleWord] = hamming.Calc(s, strings.ToLower(possibleWord))
 				if matches[possibleWord] < 0 {
-					matches[possibleWord] = levenshtein.Distance(s, possibleWord)
+					matches[possibleWord] = levenshtein.Distance(s, strings.ToLower(possibleWord))
 				}
 				if matches[possibleWord] < bestVal {
 					bestMatch = possibleWord
@@ -64,7 +64,7 @@ func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[s
 	return matchWords, matchScores, returnError
 }
 
-func findMatches(s string, path string) (matches map[string]int, bestMatch string, bestVal int, returnError error) {
+func findMatches(s string, path string, bestMatchOnly bool) (matches map[string]int, bestMatch string, bestVal int, returnError error) {
 	bestMatch = "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj"
 	bestVal = 1000
 	returnError = nil
@@ -98,8 +98,11 @@ func findMatches(s string, path string) (matches map[string]int, bestMatch strin
 	partials := getPartials(s, tupleLength)
 	matches = make(map[string]int)
 	// var wg sync.WaitGroup
-
+	foundBestMatch := false
 	for _, partial := range partials {
+		if foundBestMatch && bestMatchOnly {
+			break
+		}
 		// wg.Add(1)
 		func(partial string, path string) {
 			// defer wg.Done()
@@ -120,7 +123,6 @@ func findMatches(s string, path string) (matches map[string]int, bestMatch strin
 				// log.Println(partial)
 				// log.Printf("The answer is: %v\n", vals)
 				if len(v) > 0 {
-					gotZero := false
 					for _, k := range strings.Split(vals, " ") {
 						db.View(func(tx *bolt.Tx) error {
 							knum, _ := strconv.Atoi(k)
@@ -128,22 +130,21 @@ func findMatches(s string, path string) (matches map[string]int, bestMatch strin
 							v := string(b.Get([]byte(k)))
 							_, ok := matches[v]
 							if ok != true {
-								matches[v] = hamming.Calc(s, v)
+								matches[v] = hamming.Calc(s, strings.ToLower(v))
 								if matches[v] < 0 {
-									matches[v] = levenshtein.Distance(s, v)
+									matches[v] = levenshtein.Distance(s, strings.ToLower(v))
 								}
-								if matches[v] == 0 {
-									gotZero = true
-								} else {
-									if matches[v] < bestVal {
-										bestMatch = v
-										bestVal = matches[v]
+								if matches[v] < bestVal {
+									bestMatch = v
+									bestVal = matches[v]
+									if bestVal == 0 {
+										foundBestMatch = true
 									}
 								}
 							}
 							return nil
 						})
-						if gotZero {
+						if foundBestMatch && bestMatchOnly {
 							break
 						}
 					}
@@ -162,7 +163,7 @@ func findMatches(s string, path string) (matches map[string]int, bestMatch strin
 //
 // path is the filename of the database generated with GenerateDB()
 func GetMatch(s string, path string) (string, int, error) {
-	_, bestMatch, bestVal, returnError := findMatches(s, path)
+	_, bestMatch, bestVal, returnError := findMatches(s, path, true)
 	if bestMatch == "ajcoewiclaksmecoiawemcolwqiemjclaseflkajsfklj" {
 		returnError = errors.New("No matches")
 		bestMatch = ""
@@ -178,7 +179,7 @@ func GetMatch(s string, path string) (string, int, error) {
 //
 // path is the filename of the database generated with GenerateDB()
 func GetMatches(s string, path string) ([]string, []int, error) {
-	matches, _, _, returnError := findMatches(s, path)
+	matches, _, _, returnError := findMatches(s, path, false)
 	matchWords := []string{}
 	matchScores := []int{}
 	var pairlist PairList
