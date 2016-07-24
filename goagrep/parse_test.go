@@ -44,7 +44,7 @@ func ExampleParse1() {
 
 func ExampleParse2() {
 	fmt.Println(getPartials("The Story and of Some/thing", 5))
-	// Output: [thest hesto estor story torya oryan ryand yands andso ndsom dsome somet ometh methi ethin thing]
+	// Output: [thest hesto estor story torya oryan ryand yando andof ndofs dofso ofsom fsome some/ ome/t me/th e/thi /thin thing]
 }
 
 func ExampleParse3() {

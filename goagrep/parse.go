@@ -24,14 +24,7 @@ func init() {
 func getPartials(s string, tupleLength int) []string {
 	partials := make([]string, 500)
 	num := 0
-	s = strings.ToLower(s)
-	s = strings.Replace(s, "/", "", -1)
-	s = strings.Replace(s, " the ", "", -1)
-	s = strings.Replace(s, " by ", "", -1)
-	s = strings.Replace(s, " dr", "", -1)
-	s = strings.Replace(s, " of ", "", -1)
-	s = strings.Replace(s, " and ", "", -1)
-	s = strings.Replace(s, " ", "", -1)
+	s = strings.TrimSpace(strings.Replace(strings.ToLower(s), " ", "", -1))
 	slen := len(s)
 	if slen <= tupleLength {
 		if slen <= 3 {
@@ -49,7 +42,6 @@ func getPartials(s string, tupleLength int) []string {
 			num = num + 1
 		}
 	}
-	//fmt.Println(s, partials[0:num])
 	return partials[0:num]
 }
 
