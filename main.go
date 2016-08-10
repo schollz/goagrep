@@ -13,11 +13,18 @@ import (
 	"github.com/schollz/goagrep/goagrep"
 )
 
+var VersionNum string
+var Build string
+var BuildTime string
+
 func main() {
+	if len(Build) > 6 {
+		Build = Build[0:6]
+	}
 	app := cli.NewApp()
 	app.Name = "goagrep"
 	app.Usage = "Fuzzy matching of big strings.\n   Before use, make sure to make a data file (goagrep build)."
-	app.Version = "2.0beta"
+	app.Version = VersionNum + " (" + Build + ")"
 	var wordlist, subsetSize, outputFile, searchWord string
 	var verbose, listAll bool
 	var tcpServer bool
