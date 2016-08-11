@@ -1,5 +1,5 @@
 SOURCEDIR=.
-SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
+SOURCES := main.go
 
 BINARY=goagrep
 
@@ -12,10 +12,12 @@ LDFLAGS=-ldflags "-X main.VersionNum=${VERSION} -X main.Build=${BUILD} -X main.B
 .DEFAULT_GOAL: $(BINARY)
 
 $(BINARY): $(SOURCES)
+	rm -rf builds
+	mkdir builds
 	go get github.com/schollz/goagrep/goagrep
 	go get github.com/firstrow/tcp_server
 	go get github.com/codegangsta/cli
-	go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
+	go build ${LDFLAGS} -o builds/${BINARY} ${SOURCES}
 
 .PHONY: install
 install:
