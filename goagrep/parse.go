@@ -22,7 +22,7 @@ func init() {
 }
 
 func getPartials(s string, tupleLength int) []string {
-	partials := make([]string, 500)
+	partials := make([]string, 100)
 	num := 0
 	s = strings.TrimSpace(strings.Replace(strings.ToLower(s), " ", "", -1))
 	slen := len(s)
@@ -40,6 +40,9 @@ func getPartials(s string, tupleLength int) []string {
 		for i := 0; i <= slen-tupleLength; i++ {
 			partials[num] = s[i : i+tupleLength]
 			num = num + 1
+			if num >= 100 {
+				break
+			}
 		}
 	}
 	return partials[0:num]

@@ -29,6 +29,7 @@ func main() {
 	var verbose, listAll bool
 	var tcpServer bool
 	var port string
+	goagrep.Normalize = true
 	app.Commands = []cli.Command{
 		{
 			Name:    "match",
@@ -179,10 +180,16 @@ func main() {
 		if verbose {
 			start = time.Now()
 		}
-		matches, _, _ := goagrep.GetMatchesInMemoryInParallel(message, words, tuples, tupleLength, true)
+		matches, scores, _ := goagrep.GetMatchesInMemoryInParallel(message, words, tuples, tupleLength, true)
 		if verbose {
 			elapsed := time.Since(start)
-			log.Printf("Best match for '%s' is '%s' %s", strings.TrimSpace(message), matches[0], elapsed)
+			log.Printf("Searched for '%s' in %s", strings.TrimSpace(message), elapsed)
+			for i := range matches {
+				fmt.Printf("%d: '%s'\n", scores[i], matches[i])
+				if i > 10 {
+					break
+				}
+			}
 		}
 		c.Send(matches[0])
 	})

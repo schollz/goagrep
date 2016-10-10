@@ -31,7 +31,7 @@ func getDistance(s1 string, s2 string) int {
 			minWord = len(s2)
 		}
 		if dist > minWord {
-			dist = minWord
+			dist = (dist-minWord)/2 + minWord
 		}
 		lcsDist := LCS(s1, s2)
 		dist = dist + -1*lcsDist
