@@ -76,14 +76,14 @@ func Example8() {
 }
 
 func Example9() {
-	stringListPath := "../example/testlist"
-	tupleLength := 3
+	stringListPath := "titles.list"
+	tupleLength := 6
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	Normalize = true
-	matches, _, _ := GetMatchesInMemory("April", words, tuples, tupleLength, true)
+	matches, _, _ := GetMatchesInMemory("April Fools Day Anthology", words, tuples, tupleLength, true)
 	fmt.Println(matches[0])
+
 	Normalize = false
-	// Output: April In Paris by Chevoun Lamount
 }
 
 func BenchmarkPartialsTuple3(b *testing.B) {
@@ -109,10 +109,10 @@ func ExampleTitles() {
 	tupleLength := 4
 	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
 	Normalize = true
-	matches, scores, _ := GetMatchesInMemory("April", words, tuples, tupleLength, true)
+	matches, scores, _ := GetMatchesInMemory("April in Paris", words, tuples, tupleLength, true)
 	fmt.Println(matches[0], scores[0])
 	Normalize = false
-	// Output: April In Paris by Chevoun Lamount 0
+	// Output: April In Paris by Chevoun Lamount 2
 }
 
 func ExampleTitles2() {

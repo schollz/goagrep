@@ -32,10 +32,10 @@ func ExampleUtils5() {
 
 func ExampleUtils6() {
 	Normalize = true
-	fmt.Println(getDistance("Faithful Are The Wounds", "Unfaithful -==- Y. Johnson"))
-	fmt.Println(getDistance("Faithful Are The Wounds", "Faithful Are The Wounds -==- May Sarton"))
+	fmt.Print(getDistance("Faithful Are The Wounds", "Unfaithful -==- Y. Johnson"))
+	fmt.Print(getDistance("Faithful Are The Wounds", "Faithful Are The Wounds -==- May Sarton"))
 	Normalize = false
-	// Output: 0
+	// Output: 0-7
 }
 
 func ExampleUtils7() {
