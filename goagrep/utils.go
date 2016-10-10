@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"io"
 	"log"
-	"math"
 	"os"
 	"strings"
 
@@ -27,9 +26,13 @@ func getDistance(s1 string, s2 string) int {
 	// } else {
 	dist := levenshtein.Distance(s1, s2)
 	if Normalize {
-		dist = dist - int(math.Abs(float64(len(s1)-len(s2))))
-		if dist < 0 {
-			dist = 0
+		s, substrings := getSubstrings(s1, s2)
+		dist = 10000
+		for _, sub := range substrings {
+			distSub := levenshtein.Distance(s, sub)
+			if distSub < dist {
+				dist = distSub
+			}
 		}
 	}
 	return dist
@@ -109,4 +112,30 @@ func lineCount(filepath string) (numLines int) {
 		log.Fatal(err)
 	}
 	return
+}
+
+func getSubstrings(s1 string, s2 string) (string, []string) {
+	check := ""
+	tosplit := ""
+	subsets := []string{}
+	if len(s1) == len(s2) {
+		return s1, append(subsets, s2)
+	} else if len(s1) < len(s2) {
+		check = s1
+		tosplit = s2
+	} else {
+		check = s2
+		tosplit = s1
+	}
+	i := 0
+	splitSize := len(check)
+	subsets = make([]string, len(tosplit)-len(check)+1)
+	for {
+		subsets[i] = tosplit[i : i+splitSize]
+		i++
+		if i+splitSize > len(tosplit) {
+			break
+		}
+	}
+	return check, subsets
 }

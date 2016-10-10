@@ -104,6 +104,52 @@ func BenchmarkPartialsTuple5(b *testing.B) {
 	}
 }
 
+func ExampleTitles() {
+	stringListPath := "../example/testlist"
+	tupleLength := 4
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	Normalize = true
+	matches, scores, _ := GetMatchesInMemory("April", words, tuples, tupleLength, true)
+	fmt.Println(matches[0], scores[0])
+	Normalize = false
+	// Output: April In Paris by Chevoun Lamount 0
+}
+
+func ExampleTitles2() {
+	stringListPath := "../example/testlist"
+	tupleLength := 4
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	Normalize = false
+	matches, scores, _ := GetMatchesInMemory("April", words, tuples, tupleLength, true)
+	fmt.Println(matches[0], scores[0])
+	Normalize = false
+	// Output: lisinopril 6
+}
+
+func BenchmarkNormalized(b *testing.B) {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	Normalize = true
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemoryInParallel("April", words, tuples, tupleLength, true)
+	}
+	Normalize = false
+}
+
+func BenchmarkUnNormalized(b *testing.B) {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	b.ResetTimer()
+	Normalize = false
+	for n := 0; n < b.N; n++ {
+		GetMatchesInMemoryInParallel("April", words, tuples, tupleLength, true)
+	}
+	Normalize = false
+}
+
 func BenchmarkAllMatchesTuple3InMemoryParallelSmallList(b *testing.B) {
 	stringListPath := "../example/testlist"
 	tupleLength := 3
