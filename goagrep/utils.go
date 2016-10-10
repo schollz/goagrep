@@ -26,14 +26,15 @@ func getDistance(s1 string, s2 string) int {
 	// } else {
 	dist := levenshtein.Distance(s1, s2)
 	if Normalize {
-		s, substrings := getSubstrings(s1, s2)
-		dist = 10000
-		for _, sub := range substrings {
-			distSub := levenshtein.Distance(s, sub)
-			if distSub < dist {
-				dist = distSub
-			}
+		minWord := len(s1)
+		if len(s2) < minWord {
+			minWord = len(s2)
 		}
+		if dist > minWord {
+			dist = minWord
+		}
+		lcsDist := LCS(s1, s2)
+		dist = dist + -1*lcsDist
 	}
 	return dist
 }
@@ -138,4 +139,53 @@ func getSubstrings(s1 string, s2 string) (string, []string) {
 		}
 	}
 	return check, subsets
+}
+
+func Max(more ...int) int {
+	max_num := more[0]
+	for _, elem := range more {
+		if max_num < elem {
+			max_num = elem
+		}
+	}
+	return max_num
+}
+
+func LCS(str1, str2 string) int {
+	len1 := len(str1)
+	len2 := len(str2)
+
+	table := make([][]int, len1+1)
+	for i := range table {
+		table[i] = make([]int, len2+1)
+	}
+
+	i, j := 0, 0
+	for i = 0; i <= len1; i++ {
+		for j = 0; j <= len2; j++ {
+			if i == 0 || j == 0 {
+				table[i][j] = 0
+			} else if str1[i-1] == str2[j-1] {
+				table[i][j] = table[i-1][j-1] + 1
+			} else {
+				table[i][j] = Max(table[i-1][j], table[i][j-1])
+			}
+		}
+	}
+	return table[len1][len2] //, Back(table, str1, str2, len1-1, len2-1)
+}
+
+//http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
+func Back(table [][]int, str1, str2 string, i, j int) string {
+	if i == 0 || j == 0 {
+		return ""
+	} else if str1[i] == str2[j] {
+		return Back(table, str1, str2, i-1, j-1) + string(str1[i])
+	} else {
+		if table[i][j-1] > table[i-1][j] {
+			return Back(table, str1, str2, i, j-1)
+		} else {
+			return Back(table, str1, str2, i-1, j)
+		}
+	}
 }

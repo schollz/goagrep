@@ -42,3 +42,8 @@ func ExampleUtils7() {
 	fmt.Println(s1, strings.Join(subsets, ","))
 	// Output: harry a gre, grea,great,reat ,eat b,at bi,t big, big ,big w,ig wo,g wor, worl,world
 }
+
+func ExampleUtils8() {
+	fmt.Println(LCS("Italy Luxury: smething something", "Italy Luxury"))
+	// Output: 12
+}
