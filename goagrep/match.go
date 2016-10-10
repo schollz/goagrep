@@ -8,9 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbovm/levenshtein"
 	"github.com/boltdb/bolt"
-	"github.com/kmulvey/gohamming/hamming"
 )
 
 type resultA struct {
@@ -23,13 +21,11 @@ type jobA struct {
 	s2 string
 }
 
+var Normalize bool
+
 func worker(id int, jobs <-chan jobA, results chan<- resultA) {
 	for j := range jobs {
-		matchVal := hamming.Calc(j.s1, strings.ToLower(j.s2))
-		if matchVal < 0 {
-			matchVal = levenshtein.Distance(j.s1, strings.ToLower(j.s2))
-		}
-		results <- resultA{s2: j.s2, distance: matchVal}
+		results <- resultA{s2: j.s2, distance: getDistance(j.s1, j.s2)}
 	}
 }
 
@@ -51,7 +47,7 @@ func GetMatchesInMemoryInParallel(s string, wordsLookup map[int]string, tuplesLo
 	jobs := make(chan jobA, len(possibleWords))
 	results := make(chan resultA, len(possibleWords))
 
-	for w := 1; w <= 100; w++ {
+	for w := 1; w <= 10; w++ {
 		go worker(w, jobs, results)
 	}
 
@@ -97,10 +93,7 @@ func GetMatchesInMemory(s string, wordsLookup map[int]string, tuplesLookup map[s
 		for _, val := range tuplesLookup[partial] {
 			possibleWord := wordsLookup[val]
 			if _, ok := matches[possibleWord]; !ok {
-				matches[possibleWord] = hamming.Calc(s, strings.ToLower(possibleWord))
-				if matches[possibleWord] < 0 {
-					matches[possibleWord] = levenshtein.Distance(s, strings.ToLower(possibleWord))
-				}
+				matches[possibleWord] = getDistance(s, possibleWord)
 				if matches[possibleWord] < bestVal {
 					bestMatch = possibleWord
 					bestVal = matches[possibleWord]
@@ -202,10 +195,7 @@ func findMatches(s string, path string, bestMatchOnly bool) (matches map[string]
 							v := string(b.Get([]byte(k)))
 							_, ok := matches[v]
 							if ok != true {
-								matches[v] = hamming.Calc(s, strings.ToLower(v))
-								if matches[v] < 0 {
-									matches[v] = levenshtein.Distance(s, strings.ToLower(v))
-								}
+								matches[v] = getDistance(s, v)
 								if matches[v] < bestVal {
 									bestMatch = v
 									bestVal = matches[v]

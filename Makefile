@@ -3,7 +3,7 @@ SOURCES := main.go
 
 BINARY=goagrep
 
-VERSION=1.6
+VERSION=2.0
 BUILD_TIME=`date +%FT%T%z`
 BUILD=`git rev-parse HEAD`
 

@@ -75,6 +75,17 @@ func Example8() {
 	// Output: myxovirus
 }
 
+func Example9() {
+	stringListPath := "../example/testlist"
+	tupleLength := 3
+	_, _, words, tuples := scanWords(stringListPath, tupleLength, true)
+	Normalize = true
+	matches, _, _ := GetMatchesInMemory("April", words, tuples, tupleLength, true)
+	fmt.Println(matches[0])
+	Normalize = false
+	// Output: April In Paris by Chevoun Lamount
+}
+
 func BenchmarkPartialsTuple3(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		getPartials("alligator", 3)

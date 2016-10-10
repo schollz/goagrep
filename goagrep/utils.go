@@ -5,13 +5,34 @@ import (
 	"bytes"
 	"io"
 	"log"
+	"math"
 	"os"
+	"strings"
+
+	"github.com/arbovm/levenshtein"
 )
 
 var alphabet string
 
 func init() {
 	alphabet = "abcdefghijklmnopqrstuvwxyz-"
+}
+
+func getDistance(s1 string, s2 string) int {
+	s1 = strings.ToLower(s1)
+	s2 = strings.ToLower(s2)
+	// dist := hamming.Calc(s1, s2)
+	// if dist > 0 {
+	// 	return dist
+	// } else {
+	dist := levenshtein.Distance(s1, s2)
+	if Normalize {
+		dist = dist - int(math.Abs(float64(len(s1)-len(s2))))
+		if dist < 0 {
+			dist = 0
+		}
+	}
+	return dist
 }
 
 func removeDuplicates(a []int) []int {

@@ -19,5 +19,9 @@ func ExampleUtils3() {
 
 func ExampleUtils4() {
 	fmt.Println(lineCount("../example/testlist"))
-	// Output: 1008
+	// Output: 1009
+}
+func ExampleUtils5() {
+	fmt.Println(getDistance("bread", "bed"))
+	// Output: 2
 }

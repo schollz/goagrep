@@ -1,4 +1,4 @@
-![Version 2.0beta](https://img.shields.io/badge/version-2.0beta-brightgreen.svg?version=flat-square) ![Coverage](https://img.shields.io/badge/coverage-78%25-orange.svg) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
+![Version 2.0](https://img.shields.io/badge/version-2.0beta-brightgreen.svg?version=flat-square) ![Coverage](https://img.shields.io/badge/coverage-80%25-green.svg) [![GoDoc](https://godoc.org/github.com/schollz/goagrep/goagrep?status.svg)](https://godoc.org/github.com/schollz/goagrep/goagrep)
 
 # goagrep
 
